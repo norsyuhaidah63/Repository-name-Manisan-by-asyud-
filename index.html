@@ -3,546 +3,828 @@
 <html lang="ms">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manisan by Asyud</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    :root {
+      --pink: #e88eae;
+      --pink-light: #fff0f5;
+      --pink-dark: #bd527b;
+      --white: #ffffff;
+      --text: #533845;
+      --muted: #987d89;
+      --border: #f2dce5;
+      --danger: #d95370;
+      --green: #32845e;
+    }
+
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #fff7f9;
-      color: #49333b;
+      background: #fff8fb;
+      color: var(--text);
     }
 
-    header {
-      background: #b85c7a;
-      color: white;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+    button, input, select {
+      font: inherit;
     }
 
-    header h1 {
-      font-size: 19px;
-      margin: 0;
-    }
-
-    #menuButton {
+    button {
       border: 0;
-      background: transparent;
-      color: white;
-      font-size: 27px;
       cursor: pointer;
+      border-radius: 10px;
+      padding: 10px 14px;
     }
 
-    #menu {
-      display: none;
-      background: white;
-      padding: 10px;
-      box-shadow: 0 4px 10px #0001;
+    .primary {
+      background: var(--pink);
+      color: white;
+      font-weight: bold;
     }
 
-    #menu button {
+    .primary:hover { background: var(--pink-dark); }
+
+    .secondary {
+      background: var(--pink-light);
+      color: var(--pink-dark);
+    }
+
+    .danger {
+      background: #fff0f0;
+      color: var(--danger);
+    }
+
+    .hidden { display: none !important; }
+
+    #loginPage {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-card {
       width: 100%;
-      text-align: left;
+      max-width: 390px;
+      padding: 30px;
       background: white;
-      color: #63384a;
-      border: 0;
-      padding: 13px;
-      border-bottom: 1px solid #f2dce4;
-      font-size: 15px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 10px 35px #dca6ba30;
     }
 
-    main {
-      max-width: 650px;
-      margin: auto;
-      padding: 18px;
+    .logo {
+      text-align: center;
+      font-size: 27px;
+      font-weight: bold;
+      color: var(--pink-dark);
+      margin-bottom: 8px;
     }
 
-    .card {
-      background: white;
-      padding: 18px;
-      margin-bottom: 18px;
-      border-radius: 15px;
-      box-shadow: 0 3px 12px #8b536010;
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #a54467;
-      font-size: 20px;
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 25px;
     }
 
     label {
       display: block;
-      margin-top: 12px;
-      margin-bottom: 6px;
+      font-size: 13px;
       font-weight: bold;
-      font-size: 14px;
+      margin: 14px 0 6px;
     }
 
-    input {
+    input, select {
       width: 100%;
       padding: 12px;
-      border: 1px solid #e5c5d0;
-      border-radius: 9px;
-      font-size: 16px;
-      background: #fffdfd;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      color: var(--text);
+      outline-color: var(--pink);
     }
 
-    .btn {
-      border: 0;
-      border-radius: 9px;
-      padding: 11px 13px;
-      margin-top: 12px;
-      cursor: pointer;
-      font-size: 14px;
+    .full { width: 100%; margin-top: 16px; }
+
+    #app {
+      min-height: 100vh;
     }
 
-    .primary {
-      background: #b85c7a;
-      color: white;
-      width: 100%;
-    }
-
-    .edit {
-      background: #f7dce6;
-      color: #843d59;
-    }
-
-    .delete {
-      background: #ffe7e7;
-      color: #a12c2c;
-    }
-
-    .cancel {
-      background: #eee;
-      color: #444;
-      width: 100%;
-    }
-
-    .product {
-      border: 1px solid #f0d9e1;
-      padding: 14px;
-      margin-top: 12px;
-      border-radius: 12px;
-    }
-
-    .product h3 {
-      margin: 0 0 8px;
-    }
-
-    .price {
-      color: #a54467;
-      font-weight: bold;
-    }
-
-    .actions {
+    header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 15px 20px;
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
     }
 
-    .actions .btn {
+    .brand {
+      font-size: 19px;
+      font-weight: bold;
+      color: var(--pink-dark);
+    }
+
+    .layout {
+      display: flex;
+      max-width: 1300px;
+      margin: auto;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    aside {
+      width: 220px;
+      flex-shrink: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+      align-self: flex-start;
+    }
+
+    .nav-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--text);
+      margin: 4px 0;
+      padding: 13px;
+    }
+
+    .nav-btn.active, .nav-btn:hover {
+      background: var(--pink-light);
+      color: var(--pink-dark);
+    }
+
+    main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .page-title {
+      margin: 2px 0 6px;
+      font-size: 25px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .card, .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 18px;
+    }
+
+    .card .number {
+      font-size: 27px;
+      font-weight: bold;
+      color: var(--pink-dark);
       margin-top: 8px;
-    }
-
-    #status {
-      margin-top: 12px;
-      font-size: 14px;
       overflow-wrap: anywhere;
     }
 
-    .hidden { display: none; }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 18px 0;
+    }
 
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #956879;
+    .toolbar input {
+      max-width: 300px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 650px;
+    }
+
+    th, td {
+      padding: 13px;
+      text-align: left;
+      border-bottom: 1px solid #f6e9ef;
+      font-size: 14px;
+    }
+
+    th {
+      background: var(--pink-light);
+      color: var(--pink-dark);
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .actions button {
+      padding: 8px 10px;
       font-size: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 20px;
+      padding: 5px 9px;
+      background: #e9f7ef;
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .badge.low {
+      background: #fff0f0;
+      color: var(--danger);
+    }
+
+    .message {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 10px;
+      background: var(--pink-light);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 14px;
+    }
+
+    .form-grid .wide { grid-column: 1 / -1; }
+
+    .empty {
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    @media (max-width: 700px) {
+      .layout { padding: 12px; display: block; }
+      aside {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 18px;
+      }
+      .nav-btn { font-size: 13px; padding: 10px; }
+      header { padding: 13px; }
+      .brand { font-size: 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .wide { grid-column: auto; }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <button id="menuButton" aria-label="Buka menu">☰</button>
-    <h1>🍰 Manisan by Asyud</h1>
-  </header>
+  <section id="loginPage">
+    <div class="login-card">
+      <div class="logo">🎀 Manisan by Asyud</div>
+      <div class="subtitle">Sistem Pengurusan Perniagaan</div>
 
-  <nav id="menu">
-    <button onclick="showSection('dashboard')">🏠 Dashboard</button>
-    <button onclick="showSection('produk')">🍰 Produk</button>
-    <button onclick="placeholder('Pesanan & Jualan')">🛍️ Pesanan & Jualan</button>
-    <button onclick="placeholder('Pelanggan')">👥 Pelanggan</button>
-    <button onclick="placeholder('Resipi')">📖 Resipi</button>
-    <button onclick="placeholder('Stok Bahan')">📦 Stok Bahan</button>
-    <button onclick="placeholder('Senarai Belian')">📝 Senarai Belian</button>
-    <button onclick="placeholder('Perbelanjaan')">💵 Perbelanjaan</button>
-    <button onclick="placeholder('Laporan & Keuntungan')">📊 Laporan & Keuntungan</button>
-    <button onclick="signOut()">🚪 Log keluar</button>
-  </nav>
+      <form id="loginForm">
+        <label for="email">Emel</label>
+        <input id="email" type="email" required autocomplete="email"
+          placeholder="Masukkan emel anda">
 
-  <main>
-    <section id="loginSection" class="card">
-      <h2>Selamat Datang ❤️</h2>
-      <p>Log masuk ke akaun Manisan by Asyud.</p>
+        <label for="password">Kata laluan</label>
+        <input id="password" type="password" required
+          autocomplete="current-password" placeholder="Masukkan kata laluan">
 
-      <label for="email">E-mel</label>
-      <input id="email" type="email" placeholder="E-mel anda" autocomplete="email">
+        <button class="primary full" type="submit">Log Masuk</button>
+      </form>
 
-      <label for="password">Kata laluan</label>
-      <input id="password" type="password" placeholder="Kata laluan" autocomplete="current-password">
+      <button id="registerBtn" class="secondary full" type="button">
+        Daftar Akaun Baharu
+      </button>
 
-      <button class="btn primary" onclick="signIn()">Log masuk</button>
-      <p id="loginStatus"></p>
-    </section>
+      <div id="loginMessage" class="message hidden"></div>
+    </div>
+  </section>
 
-    <section id="appSection" class="hidden">
-      <div id="dashboard" class="card">
-        <h2>Dashboard ❤️</h2>
-        <p>Selamat datang ke sistem pengurusan Manisan by Asyud.</p>
-        <p>Jumlah produk: <strong id="productCount">0</strong></p>
-        <button class="btn primary" onclick="showSection('produk')">
-          Urus Produk
-        </button>
-      </div>
+  <section id="app" class="hidden">
+    <header>
+      <div class="brand">🎀 Manisan by Asyud</div>
+      <button id="logoutBtn" class="secondary">Log Keluar</button>
+    </header>
 
-      <div id="produk" class="hidden">
-        <div class="card">
-          <h2 id="formTitle">Tambah Produk 🍰</h2>
+    <div class="layout">
+      <aside>
+        <button class="nav-btn active" data-page="dashboard">🏠 Dashboard</button>
+        <button class="nav-btn" data-page="products">🍰 Produk</button>
+        <button class="nav-btn" data-page="ingredients">📦 Stok Bahan</button>
+        <button class="nav-btn" data-page="sales">🧾 Rekod Jualan</button>
+        <button class="nav-btn" data-page="expenses">💸 Perbelanjaan</button>
+        <button class="nav-btn" data-page="customers">👥 Pelanggan</button>
+      </aside>
 
-          <label for="productName">Nama produk</label>
-          <input id="productName" type="text" placeholder="Contoh: Cheesekut Milo">
-
-          <label for="sellingPrice">Harga jual (RM)</label>
-          <input id="sellingPrice" type="number" min="0" step="0.01" placeholder="7.00">
-
-          <label for="costPrice">Modal (RM)</label>
-          <input id="costPrice" type="number" min="0" step="0.01" placeholder="3.00">
-
-          <label for="stockQuantity">Kuantiti stok</label>
-          <input id="stockQuantity" type="number" min="0" step="1" placeholder="8">
-
-          <button id="saveButton" class="btn primary" onclick="saveProduct()">
-            Simpan Produk
-          </button>
-
-          <button id="cancelButton" class="btn cancel hidden" onclick="cancelEdit()">
-            Batal Edit
-          </button>
-
-          <p id="status" role="status"></p>
-        </div>
-
-        <div class="card">
-          <h2>Senarai Produk 🧁</h2>
-          <div id="productList">Memuatkan produk...</div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>Manisan by Asyud ❤️</footer>
+      <main id="mainContent">
+        <div class="empty">Sedang memuatkan sistem...</div>
+      </main>
+    </div>
+  </section>
 
   <script>
     const SUPABASE_URL = "https://zbanivcgtrpmhzzpfdlm.supabase.co";
-
-    // Publishable Key Supabase yang telah dimasukkan
     const SUPABASE_KEY = "sb_publishable_nEQ6gUf5e9pZe_-YfnDbiA_W09oA7rD";
 
-    const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUser = null;
-    let editingProductId = null;
     let products = [];
+    let ingredients = [];
+    let activePage = "dashboard";
 
-    const menu = document.getElementById("menu");
+    const $ = id => document.getElementById(id);
 
-    document.getElementById("menuButton").addEventListener("click", () => {
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
-    });
-
-    function showSection(sectionId) {
-      menu.style.display = "none";
-      document.getElementById("dashboard").classList.add("hidden");
-      document.getElementById("produk").classList.add("hidden");
-      document.getElementById(sectionId).classList.remove("hidden");
-    }
-
-    function placeholder(sectionName) {
-      menu.style.display = "none";
-      alert(sectionName + " belum diaktifkan. Kita boleh bina fungsi ini seterusnya.");
-    }
-
-    async function signIn() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-      const status = document.getElementById("loginStatus");
-
-      if (!email || !password) {
-        status.textContent = "Sila isi e-mel dan kata laluan.";
-        return;
-      }
-
-      status.textContent = "Sedang log masuk...";
-
-      const { data, error } = await db.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        status.textContent = "Log masuk gagal: " + error.message;
-        return;
-      }
-
-      currentUser = data.user;
-      await startApp();
-    }
-
-    async function startApp() {
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("appSection").classList.remove("hidden");
-      showSection("dashboard");
-      await loadProducts();
-    }
-
-    async function signOut() {
-      const { error } = await db.auth.signOut();
-
-      if (error) {
-        alert("Gagal log keluar: " + error.message);
-        return;
-      }
-
-      currentUser = null;
-      editingProductId = null;
-      menu.style.display = "none";
-      document.getElementById("appSection").classList.add("hidden");
-      document.getElementById("loginSection").classList.remove("hidden");
-      document.getElementById("loginStatus").textContent = "";
-    }
-
-    async function loadProducts() {
-      if (!currentUser) return;
-
-      const list = document.getElementById("productList");
-      list.textContent = "Memuatkan produk...";
-
-      const { data, error } = await db
-        .from("products")
-        .select("*")
-        .eq("user_id", currentUser.id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        list.textContent = "Gagal memuatkan produk: " + error.message;
-        return;
-      }
-
-      products = data || [];
-      document.getElementById("productCount").textContent = products.length;
-
-      if (products.length === 0) {
-        list.textContent = "Belum ada produk. Tambah produk pertama anda.";
-        return;
-      }
-
-      list.innerHTML = products.map(product => `
-        <div class="product">
-          <h3>${escapeHTML(product.name)}</h3>
-          <p class="price">Harga jual: ${money(product.selling_price)}</p>
-          <p>Modal: ${money(product.cost_price)}</p>
-          <p>Untung seunit: ${money(Number(product.selling_price || 0) - Number(product.cost_price || 0))}</p>
-          <p>Stok: ${Number(product.stock_quantity || 0)}</p>
-
-          <div class="actions">
-            <button class="btn edit" onclick="editProduct('${product.id}')">
-              ✏️ Edit
-            </button>
-            <button class="btn delete" onclick="deleteProduct('${product.id}')">
-              🗑️ Padam
-            </button>
-          </div>
-        </div>
-      `).join("");
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
     }
 
     function money(value) {
       return "RM " + Number(value || 0).toFixed(2);
     }
 
-    function escapeHTML(value) {
-      return String(value ?? "").replace(/[&<>"']/g, character => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[character]);
+    function showMessage(id, message) {
+      const el = $(id);
+      el.textContent = message;
+      el.classList.remove("hidden");
     }
 
-    async function saveProduct() {
-      if (!currentUser) return;
+    function hideMessage(id) {
+      $(id).classList.add("hidden");
+    }
 
-      const name = document.getElementById("productName").value.trim();
-      const sellingPrice = document.getElementById("sellingPrice").value;
-      const costPrice = document.getElementById("costPrice").value;
-      const stockQuantity = document.getElementById("stockQuantity").value;
-      const status = document.getElementById("status");
-      const saveButton = document.getElementById("saveButton");
+    function showLogin() {
+      $("loginPage").classList.remove("hidden");
+      $("app").classList.add("hidden");
+    }
 
-      if (!name || sellingPrice === "" || costPrice === "" || stockQuantity === "") {
-        status.textContent = "Sila lengkapkan semua ruangan.";
+    function showApp() {
+      $("loginPage").classList.add("hidden");
+      $("app").classList.remove("hidden");
+    }
+
+    $("loginForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      hideMessage("loginMessage");
+
+      const { error } = await db.auth.signInWithPassword({
+        email: $("email").value.trim(),
+        password: $("password").value
+      });
+
+      if (error) {
+        showMessage("loginMessage", "Log masuk gagal: " + error.message);
+      }
+    });
+
+    $("registerBtn").addEventListener("click", async () => {
+      hideMessage("loginMessage");
+
+      const email = $("email").value.trim();
+      const password = $("password").value;
+
+      if (!email || password.length < 6) {
+        showMessage("loginMessage",
+          "Masukkan emel dan kata laluan sekurang-kurangnya 6 aksara.");
         return;
       }
 
-      if (
-        Number(sellingPrice) < 0 ||
-        Number(costPrice) < 0 ||
-        !Number.isInteger(Number(stockQuantity)) ||
-        Number(stockQuantity) < 0
-      ) {
-        status.textContent = "Semak harga dan kuantiti stok.";
-        return;
-      }
+      const { error } = await db.auth.signUp({ email, password });
 
-      const productData = {
-        name,
-        selling_price: Number(sellingPrice),
-        cost_price: Number(costPrice),
-        stock_quantity: Number(stockQuantity),
-        user_id: currentUser.id
-      };
-
-      saveButton.disabled = true;
-      status.textContent = "Sedang menyimpan...";
-
-      let result;
-
-      if (editingProductId) {
-        result = await db
-          .from("products")
-          .update({
-            name: productData.name,
-            selling_price: productData.selling_price,
-            cost_price: productData.cost_price,
-            stock_quantity: productData.stock_quantity
-          })
-          .eq("id", editingProductId)
-          .eq("user_id", currentUser.id)
-          .select();
+      if (error) {
+        showMessage("loginMessage", "Pendaftaran gagal: " + error.message);
       } else {
-        result = await db
-          .from("products")
-          .insert(productData)
-          .select();
+        showMessage("loginMessage",
+          "Pendaftaran dihantar. Jika pengesahan emel diaktifkan, semak emel anda dahulu.");
       }
+    });
 
-      saveButton.disabled = false;
+    $("logoutBtn").addEventListener("click", async () => {
+      await db.auth.signOut();
+    });
 
-      if (result.error) {
-        status.textContent = "Tidak berjaya: " + result.error.message;
-        return;
+    document.querySelectorAll(".nav-btn").forEach(button => {
+      button.addEventListener("click", () => {
+        activePage = button.dataset.page;
+
+        document.querySelectorAll(".nav-btn").forEach(item => {
+          item.classList.toggle("active", item === button);
+        });
+
+        renderPage();
+      });
+    });
+
+    async function loadProducts() {
+      const { data, error } = await db
+        .from("products")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      products = data || [];
+    }
+
+    async function loadIngredients() {
+      const { data, error } = await db
+        .from("ingredients")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      ingredients = data || [];
+    }
+
+    async function refreshData() {
+      try {
+        await Promise.all([loadProducts(), loadIngredients()]);
+        renderPage();
+      } catch (error) {
+        $("mainContent").innerHTML =
+          '<div class="panel"><h3>Tak dapat memuatkan data</h3><p>' +
+          escapeHTML(error.message) +
+          '</p><button class="primary" onclick="refreshData()">Cuba Lagi</button></div>';
       }
+    }
 
-      if (!result.data || result.data.length === 0) {
-        status.textContent = "Tiada perubahan disimpan. Semak polisi akses Supabase.";
-        return;
-      }
+    function pageHeading(title, description) {
+      return '<h1 class="page-title">' + title + '</h1>' +
+        '<p class="muted">' + description + '</p>';
+    }
 
-      status.textContent = editingProductId
-        ? "Produk berjaya dikemas kini ❤️"
-        : "Produk berjaya ditambah ❤️";
+    function renderPage() {
+      if (activePage === "dashboard") renderDashboard();
+      else if (activePage === "products") renderProducts();
+      else if (activePage === "ingredients") renderIngredients();
+      else renderComingSoon(activePage);
+    }
 
-      cancelEdit();
-      await loadProducts();
+    function renderDashboard() {
+      const lowStock = ingredients.filter(item =>
+        Number(item.quantity) <= Number(item.minimum_stock || 0)
+      );
+
+      $("mainContent").innerHTML =
+        pageHeading("Dashboard 🌸", "Selamat datang ke Manisan by Asyud!") +
+        '<div class="cards">' +
+          '<div class="card"><div>🍰 Jumlah Produk</div><div class="number">' +
+            products.length + '</div></div>' +
+          '<div class="card"><div>📦 Jenis Bahan</div><div class="number">' +
+            ingredients.length + '</div></div>' +
+          '<div class="card"><div>⚠️ Bahan Stok Rendah</div><div class="number">' +
+            lowStock.length + '</div></div>' +
+        '</div>' +
+        '<div class="panel"><h3>💗 Peringatan Stok</h3>' +
+        (lowStock.length
+          ? '<p>Stok bahan berikut sudah mencapai paras minimum atau lebih rendah:</p><ul>' +
+            lowStock.map(item => '<li>' + escapeHTML(item.name) +
+              ' — ' + escapeHTML(item.quantity) + ' ' +
+              escapeHTML(item.unit) + '</li>').join('') + '</ul>'
+          : '<p class="muted">Tiada bahan yang mencapai paras stok minimum.</p>') +
+        '<button class="primary" onclick="openPage(\'ingredients\')">Urus Stok Bahan</button></div>';
+    }
+
+    function openPage(page) {
+      activePage = page;
+      document.querySelectorAll(".nav-btn").forEach(button => {
+        button.classList.toggle("active", button.dataset.page === page);
+      });
+      renderPage();
+    }
+
+    function renderProducts() {
+      const rows = products.map(item => {
+        const name = item.name ?? item.product_name ?? "Tanpa nama";
+        const price = item.price ?? item.selling_price ?? 0;
+        const category = item.category ?? "-";
+
+        return '<tr><td>' + escapeHTML(name) + '</td>' +
+          '<td>' + escapeHTML(category) + '</td>' +
+          '<td>' + money(price) + '</td><td><div class="actions">' +
+          '<button class="secondary" onclick="editProduct(\'' + item.id + '\')">Edit</button>' +
+          '<button class="danger" onclick="deleteProduct(\'' + item.id + '\')">Padam</button>' +
+          '</div></td></tr>';
+      }).join("");
+
+      $("mainContent").innerHTML =
+        pageHeading("Produk 🍰", "Urus produk kek dan cheesekut anda.") +
+        '<div class="toolbar"><input id="productSearch" placeholder="Cari produk...">' +
+        '<button class="primary" onclick="showProductForm()">+ Tambah Produk</button></div>' +
+        '<div id="productFormArea"></div>' +
+        '<div class="table-wrap"><table><thead><tr><th>Nama Produk</th>' +
+        '<th>Kategori</th><th>Harga</th><th>Tindakan</th></tr></thead>' +
+        '<tbody id="productRows">' + rows + '</tbody></table></div>' +
+        (products.length ? '' : '<div class="empty">Belum ada produk untuk akaun ini.</div>');
+
+      $("productSearch").addEventListener("input", event => {
+        const term = event.target.value.toLowerCase();
+        document.querySelectorAll("#productRows tr").forEach(row => {
+          row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+        });
+      });
+    }
+
+    function showProductForm(item = null) {
+      const editing = Boolean(item);
+
+      $("productFormArea").innerHTML =
+        '<div class="panel"><h3>' + (editing ? 'Edit Produk' : 'Tambah Produk') + '</h3>' +
+        '<form id="productForm"><div class="form-grid">' +
+        '<div><label>Nama produk</label><input name="name" required value="' +
+          escapeHTML(item?.name ?? item?.product_name ?? '') + '"></div>' +
+        '<div><label>Kategori</label><input name="category" value="' +
+          escapeHTML(item?.category ?? '') + '" placeholder="Contoh: Cheesekut"></div>' +
+        '<div><label>Harga jual (RM)</label><input name="price" type="number" min="0" step="0.01" required value="' +
+          escapeHTML(item?.price ?? item?.selling_price ?? '') + '"></div>' +
+        '<div><label>Penerangan (pilihan)</label><input name="description" value="' +
+          escapeHTML(item?.description ?? '') + '"></div>' +
+        '</div><button class="primary" type="submit">' +
+        (editing ? 'Simpan Perubahan' : 'Simpan Produk') +
+        '</button> <button class="secondary" type="button" onclick="cancelProductForm()">Batal</button>' +
+        '<div id="productFormMessage" class="message hidden"></div></form></div>';
+
+      $("productForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = new FormData(event.target);
+
+        const values = {
+          name: String(form.get("name")).trim(),
+          category: String(form.get("category")).trim(),
+          price: Number(form.get("price")),
+          description: String(form.get("description")).trim()
+        };
+
+        try {
+          let result;
+
+          if (editing) {
+            result = await db.from("products")
+              .update(values)
+              .eq("id", item.id)
+              .eq("user_id", currentUser.id);
+          } else {
+            result = await db.from("products")
+              .insert({ ...values, user_id: currentUser.id });
+          }
+
+          if (result.error) throw result.error;
+
+          await loadProducts();
+          renderProducts();
+        } catch (error) {
+          showMessage("productFormMessage",
+            "Tidak berjaya menyimpan produk. Semak nama lajur jadual products di Supabase.\n" +
+            error.message);
+        }
+      });
+    }
+
+    function cancelProductForm() {
+      renderProducts();
     }
 
     function editProduct(id) {
-      const product = products.find(item => item.id === id);
-      if (!product) return;
-
-      editingProductId = id;
-
-      document.getElementById("productName").value = product.name || "";
-      document.getElementById("sellingPrice").value = product.selling_price ?? "";
-      document.getElementById("costPrice").value = product.cost_price ?? "";
-      document.getElementById("stockQuantity").value = product.stock_quantity ?? 0;
-
-      document.getElementById("formTitle").textContent = "Edit Produk ✏️";
-      document.getElementById("saveButton").textContent = "Simpan Perubahan";
-      document.getElementById("cancelButton").classList.remove("hidden");
-      document.getElementById("status").textContent = "";
-
-      showSection("produk");
-      document.getElementById("productName").focus();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function cancelEdit() {
-      editingProductId = null;
-
-      document.getElementById("productName").value = "";
-      document.getElementById("sellingPrice").value = "";
-      document.getElementById("costPrice").value = "";
-      document.getElementById("stockQuantity").value = "";
-
-      document.getElementById("formTitle").textContent = "Tambah Produk 🍰";
-      document.getElementById("saveButton").textContent = "Simpan Produk";
-      document.getElementById("cancelButton").classList.add("hidden");
+      const item = products.find(product => String(product.id) === String(id));
+      if (item) showProductForm(item);
     }
 
     async function deleteProduct(id) {
-      const product = products.find(item => item.id === id);
-      if (!product) return;
+      const item = products.find(product => String(product.id) === String(id));
+      if (!item) return;
 
-      const confirmed = confirm("Padam produk " + product.name + "?");
-      if (!confirmed) return;
+      if (!confirm('Padam produk "' +
+        (item.name ?? item.product_name ?? '') + '"? Tindakan ini tidak boleh dibatalkan.')) return;
 
-      const { error } = await db
-        .from("products")
+      const { error } = await db.from("products")
         .delete()
         .eq("id", id)
         .eq("user_id", currentUser.id);
 
       if (error) {
-        alert("Gagal memadam produk: " + error.message);
+        alert("Produk gagal dipadam: " + error.message);
         return;
       }
 
-      if (editingProductId === id) cancelEdit();
-
       await loadProducts();
-      alert("Produk telah dipadam.");
+      renderProducts();
     }
 
-    async function checkSession() {
+    function renderIngredients() {
+      const rows = ingredients.map(item => {
+        const low = Number(item.quantity) <= Number(item.minimum_stock || 0);
+
+        return '<tr><td>' + escapeHTML(item.name) + '</td>' +
+          '<td>' + escapeHTML(item.quantity) + ' ' + escapeHTML(item.unit) + '</td>' +
+          '<td>' + money(item.cost) + '</td>' +
+          '<td>' + escapeHTML(item.minimum_stock ?? 0) + ' ' + escapeHTML(item.unit) + '</td>' +
+          '<td><span class="badge ' + (low ? 'low' : '') + '">' +
+            (low ? 'Stok Rendah' : 'Mencukupi') + '</span></td>' +
+          '<td><div class="actions">' +
+          '<button class="secondary" onclick="editIngredient(\'' + item.id + '\')">Edit</button>' +
+          '<button class="danger" onclick="deleteIngredient(\'' + item.id + '\')">Padam</button>' +
+          '</div></td></tr>';
+      }).join("");
+
+      $("mainContent").innerHTML =
+        pageHeading("Stok Bahan 📦", "Tambah, edit dan padam bahan mentah perniagaan anda.") +
+        '<div class="toolbar"><input id="ingredientSearch" placeholder="Cari nama bahan...">' +
+        '<button class="primary" onclick="showIngredientForm()">+ Tambah Bahan</button></div>' +
+        '<div id="ingredientFormArea"></div>' +
+        '<div class="table-wrap"><table><thead><tr><th>Nama Bahan</th><th>Kuantiti</th>' +
+        '<th>Kos (RM)</th><th>Stok Minimum</th><th>Status</th><th>Tindakan</th></tr></thead>' +
+        '<tbody id="ingredientRows">' + rows + '</tbody></table></div>' +
+        (ingredients.length ? '' : '<div class="empty">Belum ada bahan. Tekan “Tambah Bahan” untuk mula.</div>');
+
+      $("ingredientSearch").addEventListener("input", event => {
+        const term = event.target.value.toLowerCase();
+        document.querySelectorAll("#ingredientRows tr").forEach(row => {
+          row.style.display = row.textContent.toLowerCase().includes(term) ? "" : "none";
+        });
+      });
+    }
+
+    function showIngredientForm(item = null) {
+      const editing = Boolean(item);
+
+      $("ingredientFormArea").innerHTML =
+        '<div class="panel"><h3>' + (editing ? 'Edit Bahan' : 'Tambah Bahan Baharu') + '</h3>' +
+        '<form id="ingredientForm"><div class="form-grid">' +
+        '<div class="wide"><label>Nama bahan</label><input name="name" required value="' +
+          escapeHTML(item?.name ?? '') + '" placeholder="Contoh: Cream cheese"></div>' +
+        '<div><label>Kuantiti semasa</label><input name="quantity" type="number" min="0" step="0.001" required value="' +
+          escapeHTML(item?.quantity ?? '') + '"></div>' +
+        '<div><label>Unit</label><select name="unit" required>' +
+          ['g','kg','ml','L','unit','pek','kotak','botol','tin'].map(unit =>
+            '<option value="' + unit + '" ' +
+            ((item?.unit ?? 'g') === unit ? 'selected' : '') + '>' + unit + '</option>'
+          ).join('') +
+        '</select></div>' +
+        '<div><label>Kos bahan (RM)</label><input name="cost" type="number" min="0" step="0.01" required value="' +
+          escapeHTML(item?.cost ?? '') + '"></div>' +
+        '<div><label>Stok minimum</label><input name="minimum_stock" type="number" min="0" step="0.001" required value="' +
+          escapeHTML(item?.minimum_stock ?? 0) + '"></div>' +
+        '</div><button class="primary" type="submit">' +
+        (editing ? 'Simpan Perubahan' : 'Simpan Bahan') +
+        '</button> <button class="secondary" type="button" onclick="cancelIngredientForm()">Batal</button>' +
+        '<div id="ingredientFormMessage" class="message hidden"></div></form></div>';
+
+      $("ingredientForm").addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = new FormData(event.target);
+
+        const values = {
+          name: String(form.get("name")).trim(),
+          quantity: Number(form.get("quantity")),
+          unit: String(form.get("unit")),
+          cost: Number(form.get("cost")),
+          minimum_stock: Number(form.get("minimum_stock"))
+        };
+
+        if (!values.name || values.quantity < 0 ||
+            values.cost < 0 || values.minimum_stock < 0) {
+          showMessage("ingredientFormMessage", "Sila semak semua maklumat.");
+          return;
+        }
+
+        try {
+          let result;
+
+          if (editing) {
+            result = await db.from("ingredients")
+              .update(values)
+              .eq("id", item.id)
+              .eq("user_id", currentUser.id);
+          } else {
+            result = await db.from("ingredients")
+              .insert({ ...values, user_id: currentUser.id });
+          }
+
+          if (result.error) throw result.error;
+
+          await loadIngredients();
+          renderIngredients();
+        } catch (error) {
+          showMessage("ingredientFormMessage",
+            "Bahan gagal disimpan: " + error.message);
+        }
+      });
+    }
+
+    function cancelIngredientForm() {
+      renderIngredients();
+    }
+
+    function editIngredient(id) {
+      const item = ingredients.find(ingredient => String(ingredient.id) === String(id));
+      if (item) showIngredientForm(item);
+    }
+
+    async function deleteIngredient(id) {
+      const item = ingredients.find(ingredient => String(ingredient.id) === String(id));
+      if (!item) return;
+
+      if (!confirm('Padam bahan "' + item.name + '"? Tindakan ini tidak boleh dibatalkan.')) return;
+
+      const { error } = await db.from("ingredients")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", currentUser.id);
+
+      if (error) {
+        alert("Bahan gagal dipadam: " + error.message);
+        return;
+      }
+
+      await loadIngredients();
+      renderIngredients();
+    }
+
+    function renderComingSoon(page) {
+      const titles = {
+        sales: "Rekod Jualan 🧾",
+        expenses: "Perbelanjaan 💸",
+        customers: "Pelanggan 👥"
+      };
+
+      $("mainContent").innerHTML =
+        pageHeading(titles[page] || "Pengurusan", "Bahagian Manisan by Asyud") +
+        '<div class="panel"><p>Bahagian ini belum disambungkan kepada jadual Supabase.</p>' +
+        '<p class="muted">Untuk mengaktifkan fungsi tambah, edit dan padam, jadual pangkalan data bagi bahagian ini perlu disediakan dahulu.</p></div>';
+    }
+
+    db.auth.onAuthStateChange(async (_event, session) => {
+      currentUser = session?.user || null;
+
+      if (currentUser) {
+        showApp();
+        await refreshData();
+      } else {
+        showLogin();
+      }
+    });
+
+    async function startApp() {
       const { data, error } = await db.auth.getSession();
 
       if (error) {
-        document.getElementById("loginStatus").textContent = error.message;
+        showMessage("loginMessage", error.message);
+        showLogin();
         return;
       }
 
-      if (data.session) {
-        currentUser = data.session.user;
-        await startApp();
+      currentUser = data.session?.user || null;
+
+      if (currentUser) {
+        showApp();
+        await refreshData();
+      } else {
+        showLogin();
       }
     }
 
-    checkSession();
+    startApp();
   </script>
 </body>
 </html>
