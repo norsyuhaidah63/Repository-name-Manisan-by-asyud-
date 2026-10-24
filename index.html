@@ -255,8 +255,8 @@
   <script>
     const SUPABASE_URL = "https://zbanivcgtrpmhzzpfdlm.supabase.co";
 
-    // Masukkan Publishable Key Supabase anda di antara tanda petik.
-    const SUPABASE_KEY = "MASUKKAN_PUBLISHABLE_KEY_ANDA";
+    // Publishable Key Supabase yang telah dimasukkan
+    const SUPABASE_KEY = "sb_publishable_nEQ6gUf5e9pZe_-YfnDbiA_W09oA7rD";
 
     const db = window.supabase.createClient(
       SUPABASE_URL,
@@ -275,10 +275,8 @@
 
     function showSection(sectionId) {
       menu.style.display = "none";
-
       document.getElementById("dashboard").classList.add("hidden");
       document.getElementById("produk").classList.add("hidden");
-
       document.getElementById(sectionId).classList.remove("hidden");
     }
 
