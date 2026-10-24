@@ -271,7 +271,9 @@ mainContent.innerHTML=`<div class="invoice-screen">
 <button class="btn btn-light" onclick="backToInvoiceList()">← Kembali ke Senarai Order</button>
 </div>
 <div class="invoice-actions no-print">
+
 <button class="btn btn-primary" onclick="printCurrentDocument()">🖨️ Cetak / Simpan PDF</button>
+<button class="btn btn-primary" onclick="shareInvoice()">📤 Kongsi Invois / Resit</button>
 <button class="btn btn-light" onclick="openDocumentForSafari()">↗ Buka untuk cetak melalui Safari</button>
 <button class="btn btn-light" onclick="backToInvoiceList()">Kembali</button>
 </div>
@@ -298,6 +300,41 @@ ${receipt?`<tr><td>Baki selepas deposit</td><td class="invoice-right">${money(ba
 }
 function printCurrentDocument(){
 try{window.print();}catch(e){alert('Cetakan terus tidak tersedia. Cuba buka dokumen melalui Safari.');}
+}
+
+async function shareInvoice(){
+ const paper=document.querySelector('.invoice-paper');
+
+ if(!paper){
+   alert('Sila buka invois atau resit dahulu.');
+   return;
+ }
+
+ const title=currentInvoiceType==='receipt'
+   ?'Resit Manisan by Asyud'
+   :'Invois Manisan by Asyud';
+
+ const text=paper.innerText;
+
+ if(navigator.share){
+   try{
+     await navigator.share({
+       title:title,
+       text:title+'\n\n'+text
+     });
+   }catch(e){
+     if(e.name!=='AbortError'){
+       alert('Tidak berjaya berkongsi. Cuba buka melalui Safari.');
+     }
+   }
+ }else{
+   try{
+     await navigator.clipboard.writeText(title+'\n\n'+text);
+     alert('Butiran telah disalin. Awak boleh tampal ke WhatsApp.');
+   }catch(e){
+     prompt('Salin butiran invois/resit ini:',title+'\n\n'+text);
+   }
+ }
 }
 
 /* DIKEMAS KINI: BUKA DOKUMEN DALAM TAB BARU */
