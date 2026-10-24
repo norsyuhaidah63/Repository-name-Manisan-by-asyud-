@@ -302,40 +302,47 @@ function printCurrentDocument(){
 try{window.print();}catch(e){alert('Cetakan terus tidak tersedia. Cuba buka dokumen melalui Safari.');}
 }
 
-async function shareInvoice(){
- const paper=document.querySelector('.invoice-paper');
 
- if(!paper){
+function shareInvoice(){
+ const paper = document.querySelector('.invoice-paper');
+
+ if (!paper) {
    alert('Sila buka invois atau resit dahulu.');
    return;
  }
 
- const title=currentInvoiceType==='receipt'
-   ?'Resit Manisan by Asyud'
-   :'Invois Manisan by Asyud';
+ const title = currentInvoiceType === 'receipt'
+   ? 'Resit Manisan by Asyud'
+   : 'Invois Manisan by Asyud';
 
- const text=paper.innerText;
+ const text = title + '\n\n' + paper.innerText;
 
- if(navigator.share){
-   try{
-     await navigator.share({
-       title:title,
-       text:title+'\n\n'+text
+ if (navigator.share) {
+   navigator.share({ title: title, text: text })
+     .catch(function(err) {
+       if (err.name !== 'AbortError') {
+         copyInvoiceText(text);
+       }
      });
-   }catch(e){
-     if(e.name!=='AbortError'){
-       alert('Tidak berjaya berkongsi. Cuba buka melalui Safari.');
-     }
-   }
- }else{
-   try{
-     await navigator.clipboard.writeText(title+'\n\n'+text);
-     alert('Butiran telah disalin. Awak boleh tampal ke WhatsApp.');
-   }catch(e){
-     prompt('Salin butiran invois/resit ini:',title+'\n\n'+text);
-   }
+ } else {
+   copyInvoiceText(text);
  }
 }
+
+function copyInvoiceText(text){
+ if (navigator.clipboard && navigator.clipboard.writeText) {
+   navigator.clipboard.writeText(text)
+     .then(function(){
+       alert('Butiran invois disalin. Buka WhatsApp dan tampal.');
+     })
+     .catch(function(){
+       window.prompt('Salin butiran invois ini:', text);
+     });
+ } else {
+   window.prompt('Salin butiran invois ini:', text);
+ }
+}
+
 
 /* DIKEMAS KINI: BUKA DOKUMEN DALAM TAB BARU */
 function openDocumentForSafari(){
