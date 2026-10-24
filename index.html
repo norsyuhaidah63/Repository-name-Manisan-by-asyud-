@@ -3,61 +3,215 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Manisan by Asyud</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#fff7f5;color:#573b43}
-header{background:#e9a6b5;padding:25px 18px;color:white;border-radius:0 0 22px 22px}
-h1{margin:0;font-size:25px}
-header p{margin-bottom:0}
-main{padding:18px}
-.card{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 3px 12px #0000000d}
-h2{font-size:18px;margin-top:0}
-input,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:15px}
-input{border:1px solid #e6cbd1}
+*{box-sizing:border-box}
+body{margin:0;background:#fff7f5;color:#593b43;font-family:Arial,sans-serif}
+header{background:#e6a1b3;color:white;padding:25px 18px;border-radius:0 0 24px 24px}
+header h1{margin:0;font-size:26px}
+main{padding:16px;max-width:650px;margin:auto}
+.card{background:white;border-radius:16px;padding:17px;margin:14px 0;box-shadow:0 3px 12px #0000000b}
+h2{font-size:19px;margin-top:0}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:15px}
+input{border:1px solid #e6cbd1;background:white}
 button{border:0;background:#d87894;color:white;font-weight:bold}
-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-nav button{background:#f4dce3;color:#653c49}
-.small{font-size:13px;color:#856d74}
+button.secondary{background:#f4dce3;color:#653c49}
+nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.small{font-size:13px;color:#856d74;overflow-wrap:anywhere}
+.product{border:1px solid #f0dce1;border-radius:12px;padding:12px;margin:10px 0}
+.price{font-size:18px;font-weight:bold;color:#bd5276}
+.hidden{display:none}
 </style>
 </head>
 <body>
 <header>
 <h1>🍰 Manisan by Asyud</h1>
-<p>Aplikasi pengurusan bisnes manisan</p>
+<p>Manisnya setiap detik ❤️</p>
 </header>
 <main>
 <div class="card">
-<h2>Selamat datang ❤️</h2>
-<p>Urus jualan, produk dan pelanggan anda di satu tempat.</p>
+<h2>☁️ Sambungan akaun</h2>
+<div id="status" class="small">Menyediakan sambungan...</div>
+<div id="auth">
+<input id="email" type="email" placeholder="Alamat emel">
+<input id="password" type="password" placeholder="Kata laluan (minimum 6 aksara)">
+<button onclick="authAction('login')">Log masuk</button>
+<button class="secondary" onclick="authAction('signup')">Daftar akaun baharu</button>
+<button class="secondary" onclick="resetPassword()">Lupa kata laluan?</button>
 </div>
-<nav>
-<button onclick="show('produk')">🍰 Produk</button>
-<button onclick="show('pelanggan')">👩‍🍳 Pelanggan</button>
-<button onclick="show('jualan')">🧾 Jualan</button>
-<button onclick="show('stok')">📦 Stok bahan</button>
-<button onclick="show('resepi')">📖 Resepi</button>
-<button onclick="show('belian')">🛒 Senarai belian</button>
-</nav>
-<div id="content" class="card">
-<h2>Ringkasan</h2>
-<p>Selamat menguruskan Manisan by Asyud!</p>
-<p class="small">Versi permulaan aplikasi.</p>
+<div id="signed" class="hidden">
+<p id="who" class="small"></p>
+<button class="secondary" onclick="logout()">Log keluar</button>
+</div>
+</div>
+
+<div id="app" class="hidden">
+<div class="card">
+<h2>💗 Ringkasan</h2>
+<p>Jumlah produk: <strong id="count">0</strong></p>
+<p>Anggaran untung seunit terkumpul: <strong id="profit">RM0.00</strong></p>
+<p class="small">Untung di sini ialah harga jualan ditolak kos produk, belum termasuk kos lain.</p>
+</div>
+
+<div class="card">
+<h2>🧁 Tambah produk</h2>
+<input id="pname" placeholder="Nama produk, contoh: Cheesekut Milo">
+<input id="sell" type="number" min="0" step="0.01" placeholder="Harga jualan (RM)">
+<input id="cost" type="number" min="0" step="0.01" placeholder="Kos produk (RM)">
+<input id="stock" type="number" min="0" step="1" placeholder="Kuantiti stok">
+<button onclick="addProduct()">Simpan produk</button>
+</div>
+
+<div class="card">
+<h2>🍰 Senarai produk</h2>
+<button class="secondary" onclick="loadProducts()">Muat semula produk</button>
+<div id="products">Belum ada produk.</div>
+</div>
 </div>
 </main>
+
 <script>
-function show(section){
-const names={
-produk:"Produk",
-pelanggan:"Pelanggan",
-jualan:"Jualan",
-stok:"Stok bahan",
-resepi:"Resepi",
-belian:"Senarai belian"
-};
-document.getElementById("content").innerHTML=
-"<h2>"+names[section]+"</h2><p>Bahagian "+names[section]+" akan dibina dalam langkah seterusnya.</p>";
+const PROJECT_URL = "https://zbanivcgtrpmhzzpfdlm.supabase.co";
+const PUBLISHABLE_KEY = "sb_publishable_nEQ6gUf5e9pZe_-YfnDbiA_W09oA7rD";
+const db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY);
+
+const el = id => document.getElementById(id);
+const money = n => Number(n || 0).toLocaleString("ms-MY",{style:"currency",currency:"MYR"});
+
+function message(t){el("status").textContent=t;}
+
+async function refreshSession(){
+  const {data,error}=await db.auth.getSession();
+  if(error){message("Ralat sambungan: "+error.message);return;}
+  showSession(data.session);
 }
+
+function showSession(session){
+  const loggedIn=!!session;
+  el("auth").classList.toggle("hidden",loggedIn);
+  el("signed").classList.toggle("hidden",!loggedIn);
+  el("app").classList.toggle("hidden",!loggedIn);
+  if(loggedIn){
+    el("who").textContent="Log masuk sebagai "+session.user.email;
+    message("Berjaya disambungkan ke Supabase.");
+    loadProducts();
+  }else{
+    message("Sila log masuk atau daftar akaun.");
+  }
+}
+
+async function authAction(action){
+  const email=el("email").value.trim();
+  const password=el("password").value;
+  if(!email||!password){message("Sila isi emel dan kata laluan.");return;}
+  if(password.length<6){message("Kata laluan perlu sekurang-kurangnya 6 aksara.");return;}
+  message("Sedang memproses...");
+  let result;
+  if(action==="signup"){
+    result=await db.auth.signUp({email,password});
+  }else{
+    result=await db.auth.signInWithPassword({email,password});
+  }
+  if(result.error){message("Tidak berjaya: "+result.error.message);return;}
+  if(action==="signup"&&!result.data.session){
+    message("Pendaftaran berjaya. Semak emel untuk pengesahan, kemudian log masuk.");
+    return;
+  }
+  message("Berjaya!");
+  showSession(result.data.session);
+}
+
+async function resetPassword(){
+  const email=el("email").value.trim();
+  if(!email){message("Isi alamat emel dahulu.");return;}
+  const {error}=await db.auth.resetPasswordForEmail(email);
+  message(error?"Ralat: "+error.message:"Jika emel itu berdaftar, arahan tetapan semula akan dihantar.");
+}
+
+async function logout(){
+  const {error}=await db.auth.signOut();
+  if(error){message(error.message);return;}
+  showSession(null);
+}
+
+async function loadProducts(){
+  el("products").textContent="Sedang memuatkan...";
+  const {data,error}=await db.from("products")
+    .select("id,name,selling_price,cost_price,stock_quantity")
+    .order("created_at",{ascending:false});
+  if(error){
+    el("products").textContent="Tak dapat memuatkan produk: "+error.message;
+    return;
+  }
+  el("count").textContent=data.length;
+  const totalProfit=data.reduce((sum,p)=>sum+(Number(p.selling_price||0)-Number(p.cost_price||0)),0);
+  el("profit").textContent=money(totalProfit);
+  if(!data.length){
+    el("products").textContent="Belum ada produk. Tambah produk pertama di atas.";
+    return;
+  }
+  el("products").innerHTML="";
+  data.forEach(p=>{
+    const item=document.createElement("div");
+    item.className="product";
+    const title=document.createElement("strong");
+    title.textContent=p.name;
+    const price=document.createElement("p");
+    price.className="price";
+    price.textContent=money(p.selling_price);
+    const detail=document.createElement("p");
+    detail.className="small";
+    detail.textContent="Kos: "+money(p.cost_price)+" | Untung seunit: "+money(Number(p.selling_price)-Number(p.cost_price))+" | Stok: "+(p.stock_quantity??0);
+    const del=document.createElement("button");
+    del.className="secondary";
+    del.textContent="Padam produk";
+    del.onclick=()=>deleteProduct(p.id,p.name);
+    item.append(title,price,detail,del);
+    el("products").appendChild(item);
+  });
+}
+
+async function addProduct(){
+  const name=el("pname").value.trim();
+  const selling=Number(el("sell").value);
+  const cost=Number(el("cost").value);
+  const stock=Number(el("stock").value||0);
+  if(!name){message("Sila isi nama produk.");return;}
+  if(el("sell").value===""||selling<0||el("cost").value===""||cost<0||stock<0||!Number.isInteger(stock)){
+    message("Semak harga, kos dan stok. Semua mesti sah dan tidak negatif.");
+    return;
+  }
+  message("Sedang menyimpan produk...");
+  const {data:{user}}=await db.auth.getUser();
+  if(!user){message("Sila log masuk semula.");return;}
+  const {error}=await db.from("products").insert({
+    user_id:user.id,
+    name,
+    selling_price:selling,
+    cost_price:cost,
+    stock_quantity:stock
+  });
+  if(error){message("Produk belum disimpan: "+error.message);return;}
+  el("pname").value="";
+  el("sell").value="";
+  el("cost").value="";
+  el("stock").value="";
+  message("Produk berjaya disimpan! ❤️");
+  await loadProducts();
+}
+
+async function deleteProduct(id,name){
+  if(!confirm("Padam produk "+name+"?"))return;
+  const {error}=await db.from("products").delete().eq("id",id);
+  if(error){message("Tidak dapat memadam: "+error.message);return;}
+  message("Produk dipadam.");
+  loadProducts();
+}
+
+db.auth.onAuthStateChange((_event,session)=>showSession(session));
+refreshSession();
 </script>
 </body>
 </html>
