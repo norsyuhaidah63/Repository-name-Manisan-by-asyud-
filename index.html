@@ -1,431 +1,180 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Manisan by Asyud</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--pink:#e98eae;--dark:#c95783;--light:#fff0f5;--cream:#fffaf8;--text:#49333d;--muted:#927c86;--border:#f2dce5;--danger:#c84355}
-*{box-sizing:border-box}
-body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif}
-button,input,select,textarea{font:inherit}button{cursor:pointer}
-.topbar{height:68px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 18px;position:sticky;top:0;z-index:20}
-.brand{font-weight:800;font-size:19px;color:var(--dark);flex:1}
-.hamburger{border:0;background:var(--light);color:var(--dark);border-radius:12px;padding:10px 13px;font-size:23px}
-.user-label{font-size:12px;color:var(--muted);max-width:150px;overflow:hidden}
-.app{display:flex;min-height:calc(100vh - 68px)}
-.sidebar{width:245px;background:white;border-right:1px solid var(--border);padding:20px 13px;flex-shrink:0}
-.side-heading{font-size:11px;color:var(--muted);padding:10px 12px;letter-spacing:1px}
-.nav-btn{width:100%;border:0;background:transparent;text-align:left;padding:13px 14px;margin:3px 0;border-radius:12px;color:var(--text);display:flex;gap:12px}
-.nav-btn:hover,.nav-btn.active{background:var(--light);color:var(--dark);font-weight:bold}
-.main{flex:1;min-width:0;padding:25px;width:100%;max-width:1500px;margin:auto}
-.page-title{margin:0 0 7px;font-size:26px}
-.subtitle{color:var(--muted);margin:0 0 22px;font-size:14px}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px}
-.stat,.panel{background:white;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px;box-shadow:0 8px 28px #d99db51a}
-.stat-label{font-size:13px;color:var(--muted)}
-.stat-value{font-size:24px;font-weight:bold;margin-top:12px;color:var(--dark);overflow-wrap:anywhere}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
-.panel-head h2{margin:0;font-size:18px}
-.btn{border:0;border-radius:10px;padding:11px 15px;font-weight:bold}
-.btn-primary{background:var(--dark);color:white}
-.btn-light{background:var(--light);color:var(--dark)}
-.btn-danger{background:#fff0f0;color:var(--danger)}
-.btn-small{padding:7px 10px;font-size:12px;margin:2px}
-.table-wrap{width:100%;overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:550px;font-size:13px}
-th,td{padding:12px 10px;text-align:left;border-bottom:1px solid #f5e7ed;vertical-align:top}
-th{background:#fff8fb;color:var(--muted)}
-td{overflow-wrap:anywhere}
-.empty{text-align:center;color:var(--muted);padding:25px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.field{display:flex;flex-direction:column;gap:7px}
-.field.full{grid-column:1/-1}
-.field label{font-size:13px;font-weight:bold}
-.field input,.field select,.field textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:white;color:var(--text)}
-.field textarea{min-height:80px;resize:vertical}
-.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
-.actions{white-space:nowrap}
-.overlay{position:fixed;inset:0;background:#38232d66;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
-.modal{background:white;border-radius:18px;padding:22px;width:100%;max-width:620px;max-height:92vh;overflow:auto}
-.modal h2{margin:0 0 20px}
-.hidden{display:none!important}
-.notice{padding:12px 14px;border-radius:10px;margin:12px 0;font-size:13px;overflow-wrap:anywhere}
-.notice.error{background:#fff0f0;color:#a52d40}
-.notice.success{background:#eefaf1;color:#247443}
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(140deg,#fff0f5,#fffaf8)}
-.login-card{background:white;padding:28px;border-radius:22px;width:100%;max-width:420px;border:1px solid var(--border)}
-.login-card h1{color:var(--dark);font-size:25px;margin:0 0 8px}
-.login-card p{color:var(--muted);font-size:13px;line-height:1.6}
-.login-card .field{margin:16px 0}
-.login-card .btn{width:100%;margin-top:8px}
-.backdrop{display:none}
-@media(max-width:760px){
-.topbar{height:62px;padding:0 10px}.brand{font-size:15px}.user-label{display:none}
-.app{min-height:calc(100vh - 62px)}
-.sidebar{position:fixed;z-index:30;top:62px;bottom:0;left:0;width:270px;transform:translateX(-105%);transition:transform .2s;overflow:auto}
-.sidebar.open{transform:translateX(0);box-shadow:10px 0 30px #0001}
-.backdrop.show{display:block;position:fixed;inset:62px 0 0;z-index:25;background:#38232d55}
-.main{padding:17px 12px}.page-title{font-size:22px}
-.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.stat{padding:13px}.stat-value{font-size:20px}.panel{padding:13px}
-.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}
-}
-@media(max-width:380px){.cards{grid-template-columns:1fr}}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--text);font-family:Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}.topbar{height:64px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 14px;position:sticky;top:0;z-index:20}.brand{font-weight:800;color:var(--dark);flex:1}.hamburger{border:0;background:var(--light);color:var(--dark);padding:9px 13px;border-radius:10px;font-size:22px}.user-label{font-size:12px;color:var(--muted)}
+.app{display:flex;min-height:calc(100vh - 64px)}.sidebar{width:240px;background:white;border-right:1px solid var(--border);padding:16px 12px;flex-shrink:0}.side-heading{font-size:11px;color:var(--muted);padding:10px}.nav-btn{width:100%;border:0;background:transparent;text-align:left;padding:12px;margin:3px 0;border-radius:10px;color:var(--text)}.nav-btn.active,.nav-btn:hover{background:var(--light);color:var(--dark);font-weight:bold}.main{flex:1;min-width:0;padding:22px;max-width:1500px;margin:auto;width:100%}
+.page-title{font-size:25px;margin:0 0 7px}.subtitle{font-size:13px;color:var(--muted);margin:0 0 20px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}.stat,.panel{background:white;border:1px solid var(--border);border-radius:15px;padding:17px;margin-bottom:16px;box-shadow:0 5px 20px #d99db515}.stat-label{font-size:12px;color:var(--muted)}.stat-value{font-size:22px;color:var(--dark);font-weight:bold;margin-top:10px;overflow-wrap:anywhere}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.panel-head h2{font-size:17px;margin:0}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:bold}.btn-primary{background:var(--dark);color:white}.btn-light{background:var(--light);color:var(--dark)}.btn-danger{background:#fff0f0;color:var(--danger)}.btn-small{padding:6px 9px;font-size:12px;margin:2px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:530px;font-size:13px}th,td{padding:11px 9px;text-align:left;border-bottom:1px solid #f5e7ed;vertical-align:top}th{background:#fff8fb;color:var(--muted)}.empty{text-align:center;color:var(--muted);padding:24px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:bold}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:white;color:var(--text)}.field textarea{min-height:75px}.form-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:14px}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(140deg,#fff0f5,#fffaf8)}.login-card{background:white;padding:26px;border-radius:20px;width:100%;max-width:420px;border:1px solid var(--border)}.login-card h1{color:var(--dark);font-size:24px}.login-card p{font-size:13px;color:var(--muted);line-height:1.6}.login-card .btn{width:100%;margin-top:8px}.notice{padding:11px;border-radius:9px;margin:10px 0;font-size:13px;overflow-wrap:anywhere}.error{background:#fff0f0;color:#a52d40}.success{background:#eefaf1;color:#247443}
+.overlay{position:fixed;inset:0;background:#38232d66;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}.modal{background:white;border-radius:17px;padding:20px;width:100%;max-width:650px;max-height:92vh;overflow:auto}.modal h2{margin-top:0}.backdrop{display:none}
+@media(max-width:760px){.topbar{height:60px;padding:0 9px}.brand{font-size:14px}.user-label{display:none}.sidebar{position:fixed;z-index:30;top:60px;bottom:0;left:0;width:270px;transform:translateX(-105%);transition:transform .2s;overflow:auto}.sidebar.open{transform:translateX(0);box-shadow:10px 0 30px #0001}.backdrop.show{display:block;position:fixed;inset:60px 0 0;z-index:25;background:#38232d55}.main{padding:14px 10px}.page-title{font-size:22px}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat,.panel{padding:12px}.stat-value{font-size:18px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:360px){.cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div id="loginPage" class="login-page">
-<div class="login-card">
-<h1>🍰 Manisan by Asyud</h1>
-<p>Sistem pengurusan produk, stok, jualan, tempahan dan pelanggan.</p>
-<div id="authNotice"></div>
+<div id="loginPage" class="login-page"><div class="login-card">
+<h1>🍰 Manisan by Asyud</h1><p>Sistem pengurusan perniagaan manisan anda.</p><div id="authNotice"></div>
 <form id="authForm">
-<div class="field"><label for="authEmail">E-mel</label><input id="authEmail" type="email" required autocomplete="email"></div>
-<div class="field"><label for="authPassword">Kata laluan</label><input id="authPassword" type="password" required minlength="6" autocomplete="current-password"></div>
-<button class="btn btn-primary" type="submit" id="loginBtn">Log masuk</button>
+<div class="field"><label>E-mel</label><input id="authEmail" type="email" required autocomplete="email"></div>
+<div class="field"><label>Kata laluan</label><input id="authPassword" type="password" required minlength="6" autocomplete="current-password"></div>
+<button class="btn btn-primary" id="loginBtn">Log masuk</button>
 <button class="btn btn-light" type="button" id="registerBtn">Daftar akaun baharu</button>
-</form>
-</div></div>
-
+</form></div></div>
 <div id="appPage" class="hidden">
-<header class="topbar">
-<button class="hamburger" id="menuToggle" aria-label="Buka menu">☰</button>
-<div class="brand">🍰 Manisan by Asyud</div>
-<span class="user-label" id="userEmail"></span>
-<button class="btn btn-light" id="logoutBtn">Keluar</button>
-</header>
-<div id="backdrop" class="backdrop"></div>
-<div class="app">
-<aside id="sidebar" class="sidebar">
-<div class="side-heading">MENU UTAMA</div>
+<header class="topbar"><button class="hamburger" id="menuToggle">☰</button><div class="brand">🍰 Manisan by Asyud</div><span class="user-label" id="userEmail"></span><button class="btn btn-light" id="logoutBtn">Keluar</button></header>
+<div class="backdrop" id="backdrop"></div>
+<div class="app"><aside class="sidebar" id="sidebar"><div class="side-heading">MENU UTAMA</div>
 <button class="nav-btn active" data-page="dashboard">🏠 Dashboard</button>
-<button class="nav-btn" data-page="products">🍰 Produk &amp; Untung</button>
+<button class="nav-btn" data-page="products">🍰 Produk & Untung</button>
 <button class="nav-btn" data-page="bookings">📋 Tempahan</button>
 <button class="nav-btn" data-page="sales">💰 Jualan</button>
 <button class="nav-btn" data-page="ingredients">📦 Stok bahan</button>
 <button class="nav-btn" data-page="recipes">📖 Resipi</button>
-<button class="nav-btn" data-page="invoices">🧾 Resit &amp; Invoice</button>
+<button class="nav-btn" data-page="invoices">🧾 Resit & Invois</button>
 <button class="nav-btn" data-page="expenses">💳 Perbelanjaan</button>
-<button class="nav-btn" data-page="reports">📊 Laporan dan Keuntungan</button>
+<button class="nav-btn" data-page="reports">📊 Laporan dan keuntungan</button>
 <button class="nav-btn" data-page="customers">👩‍🍳 Pelanggan</button>
-</aside>
-<main class="main" id="mainContent"></main>
-</div></div>
+</aside><main class="main" id="mainContent"></main></div></div>
 <div id="modalRoot"></div>
-
 <script>
 const SUPABASE_URL='https://zbanivcgtrpmhzzpfdlm.supabase.co';
 const SUPABASE_KEY='sb_publishable_nEQ6gUf5e9pZe_-YfnDbiA_W09oA7rD';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
 let currentUser=null,currentPage='dashboard';
 let cached={products:[],ingredients:[],sales:[],expenses:[],customers:[],bookings:[]};
-
 const configs={
-products:{title:'Produk & Untung',table:'products',icon:'🍰',fields:[
-{key:'name',label:'Nama produk',required:true},
-{key:'selling_price',label:'Harga jual (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'cost_price',label:'Modal (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'stock_quantity',label:'Stok produk',type:'number',required:true,min:0,step:'1'}],
-columns:[['name','Nama produk'],['selling_price','Harga jual'],['cost_price','Modal'],['stock_quantity','Stok']]},
-ingredients:{title:'Stok bahan',table:'ingredients',icon:'📦',fields:[
-{key:'name',label:'Nama bahan',required:true},
-{key:'quantity',label:'Kuantiti semasa',type:'number',required:true,min:0,step:'any'},
-{key:'unit',label:'Unit (g, kg, ml, pcs)',required:true},
-{key:'cost',label:'Kos (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'minimum_stock',label:'Stok minimum',type:'number',required:true,min:0,step:'any'}],
-columns:[['name','Nama bahan'],['quantity','Kuantiti'],['unit','Unit'],['cost','Kos (RM)'],['minimum_stock','Stok minimum']]},
-sales:{title:'Jualan',table:'sales',icon:'💰',fields:[
-{key:'sale_date',label:'Tarikh jualan',type:'date',required:true},
-{key:'customer_name',label:'Nama pelanggan'},
-{key:'product_name',label:'Nama produk',required:true},
-{key:'quantity',label:'Kuantiti',type:'number',required:true,min:1,step:'any'},
-{key:'amount',label:'Jumlah jualan (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'notes',label:'Catatan',type:'textarea'}],
-columns:[['sale_date','Tarikh'],['customer_name','Pelanggan'],['product_name','Produk'],['quantity','Kuantiti'],['amount','Jumlah (RM)'],['notes','Catatan']]},
-expenses:{title:'Perbelanjaan',table:'expenses',icon:'💳',fields:[
-{key:'expense_date',label:'Tarikh perbelanjaan',type:'date',required:true},
-{key:'description',label:'Butiran perbelanjaan',required:true},
-{key:'category',label:'Kategori'},
-{key:'amount',label:'Jumlah (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'notes',label:'Catatan',type:'textarea'}],
-columns:[['expense_date','Tarikh'],['description','Butiran'],['category','Kategori'],['amount','Jumlah (RM)'],['notes','Catatan']]},
-customers:{title:'Pelanggan',table:'customers',icon:'👩‍🍳',fields:[
-{key:'name',label:'Nama pelanggan',required:true},
-{key:'phone',label:'Nombor telefon',type:'tel'},
-{key:'address',label:'Alamat',type:'textarea'},
-{key:'notes',label:'Catatan',type:'textarea'}],
-columns:[['name','Nama'],['phone','Telefon'],['address','Alamat'],['notes','Catatan']]}
+products:{title:'Produk & Untung',table:'products',icon:'🍰',fields:[['name','Nama produk','text'],['selling_price','Harga jual (RM)','number'],['cost_price','Modal (RM)','number'],['stock_quantity','Stok produk','number']],cols:[['name','Produk'],['selling_price','Harga jual'],['cost_price','Modal'],['stock_quantity','Stok']]},
+ingredients:{title:'Stok bahan',table:'ingredients',icon:'📦',fields:[['name','Nama bahan','text'],['quantity','Kuantiti','number'],['unit','Unit (g, kg, ml, pcs)','text'],['cost','Kos (RM)','number'],['minimum_stock','Stok minimum','number']],cols:[['name','Bahan'],['quantity','Kuantiti'],['unit','Unit'],['cost','Kos'],['minimum_stock','Minimum']]},
+sales:{title:'Jualan',table:'sales',icon:'💰',fields:[['sale_date','Tarikh jualan','date'],['customer_name','Nama pelanggan','text'],['product_name','Nama produk','text'],['quantity','Kuantiti','number'],['amount','Jumlah jualan (RM)','number'],['notes','Catatan','textarea']],cols:[['sale_date','Tarikh'],['customer_name','Pelanggan'],['product_name','Produk'],['quantity','Kuantiti'],['amount','Jumlah'],['notes','Catatan']]},
+expenses:{title:'Perbelanjaan',table:'expenses',icon:'💳',fields:[['expense_date','Tarikh perbelanjaan','date'],['description','Butiran','text'],['category','Kategori','text'],['amount','Jumlah (RM)','number'],['notes','Catatan','textarea']],cols:[['expense_date','Tarikh'],['description','Butiran'],['category','Kategori'],['amount','Jumlah'],['notes','Catatan']]},
+customers:{title:'Pelanggan',table:'customers',icon:'👩‍🍳',fields:[['name','Nama pelanggan','text'],['phone','Telefon','tel'],['address','Alamat','textarea'],['notes','Catatan','textarea']],cols:[['name','Nama'],['phone','Telefon'],['address','Alamat'],['notes','Catatan']]}
 };
-
-const bookingFields=[
-{key:'customer_name',label:'Nama pelanggan',required:true},
-{key:'phone',label:'Nombor telefon',type:'tel'},
-{key:'product_name',label:'Nama produk',required:true},
-{key:'quantity',label:'Kuantiti',type:'number',required:true,min:1,step:'1'},
-{key:'order_date',label:'Tarikh tempahan',type:'date',required:true},
-{key:'due_date',label:'Tarikh perlu siap',type:'date',required:true},
-{key:'total_amount',label:'Jumlah harga (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'deposit_amount',label:'Deposit (RM)',type:'number',required:true,min:0,step:'0.01'},
-{key:'status',label:'Status',type:'select',required:true,options:['Pending','In Progress','Completed','Cancelled']},
-{key:'notes',label:'Catatan',type:'textarea'}
-];
-const bookingColumns=[
-['customer_name','Pelanggan'],['phone','Telefon'],['product_name','Produk'],
-['quantity','Kuantiti'],['order_date','Tarikh tempahan'],['due_date','Tarikh siap'],
-['total_amount','Jumlah'],['deposit_amount','Deposit'],['status','Status'],['notes','Catatan']
-];
-
+const bookingFields=[['customer_name','Nama pelanggan','text'],['phone','Telefon','tel'],['product_name','Produk','text'],['quantity','Kuantiti','number'],['order_date','Tarikh tempahan','date'],['due_date','Tarikh siap','date'],['total_amount','Jumlah harga (RM)','number'],['deposit_amount','Deposit (RM)','number'],['status','Status','select'],['notes','Catatan','textarea']];
+const bookingCols=[['customer_name','Pelanggan'],['phone','Telefon'],['product_name','Produk'],['quantity','Kuantiti'],['order_date','Tarikh tempahan'],['due_date','Tarikh siap'],['total_amount','Jumlah'],['deposit_amount','Deposit'],['status','Status'],['notes','Catatan']];
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function money(v){return 'RM '+Number(v||0).toLocaleString('ms-MY',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function notice(id,msg,type='error'){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="notice ${type}">${esc(msg)}</div>`;}
-function setLoading(btn,loading,label){btn.disabled=loading;btn.textContent=loading?'Sila tunggu…':label;}
-function closeMenu(){document.getElementById('sidebar').classList.remove('open');document.getElementById('backdrop').classList.remove('show');}
-
-document.getElementById('menuToggle').addEventListener('click',()=>{
-document.getElementById('sidebar').classList.toggle('open');
-document.getElementById('backdrop').classList.toggle('show');
-});
-document.getElementById('backdrop').addEventListener('click',closeMenu);
-document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>{
-currentPage=b.dataset.page;
-document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x===b));
-closeMenu();loadPage();
-}));
-
-document.getElementById('authForm').addEventListener('submit',async e=>{
-e.preventDefault();const btn=document.getElementById('loginBtn');setLoading(btn,true,'Log masuk');
-const {error}=await db.auth.signInWithPassword({
-email:document.getElementById('authEmail').value.trim(),
-password:document.getElementById('authPassword').value
-});
-setLoading(btn,false,'Log masuk');if(error)notice('authNotice',error.message);
-});
-document.getElementById('registerBtn').addEventListener('click',async()=>{
-const email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
-if(!email||password.length<6)return notice('authNotice','Masukkan e-mel sah dan kata laluan sekurang-kurangnya 6 aksara.');
-const btn=document.getElementById('registerBtn');setLoading(btn,true,'Daftar akaun baharu');
-const {data,error}=await db.auth.signUp({email,password});setLoading(btn,false,'Daftar akaun baharu');
-if(error)notice('authNotice',error.message);
-else notice('authNotice',data.session?'Akaun berjaya didaftarkan.':'Pendaftaran diterima. Semak e-mel jika pengesahan diminta.','success');
-});
-document.getElementById('logoutBtn').addEventListener('click',()=>db.auth.signOut());
-db.auth.onAuthStateChange((_event,session)=>{
-currentUser=session?.user||null;
-document.getElementById('loginPage').classList.toggle('hidden',!!currentUser);
-document.getElementById('appPage').classList.toggle('hidden',!currentUser);
-if(currentUser){document.getElementById('userEmail').textContent=currentUser.email||'';loadPage();}
-});
-
-async function fetchRows(table){
-const {data,error}=await db.from(table).select('*').order('created_at',{ascending:false});
-if(error)throw error;return data||[];
-}
-
-async function loadPage(){
-const main=document.getElementById('mainContent');
-main.innerHTML='<div class="panel">Sedang memuatkan data…</div>';
-
-if(currentPage==='dashboard'){
-const names=['products','ingredients','sales','expenses','customers'];
-const results=await Promise.allSettled(names.map(fetchRows));
-names.forEach((n,i)=>cached[n]=results[i].status==='fulfilled'?results[i].value:[]);
-renderDashboard(results.filter(x=>x.status==='rejected').map(x=>x.reason.message));return;
-}
-if(currentPage==='bookings'){
-try{cached.bookings=await fetchRows('bookings');renderBookings();}
-catch(e){main.innerHTML=`<h1 class="page-title">📋 Tempahan</h1><div class="panel"><div class="notice error">${esc(e.message)}</div><p>Semak jadual bookings dan polisi akses Supabase (RLS).</p><button class="btn btn-primary" onclick="loadPage()">Cuba lagi</button></div>`;}
-return;
-}
-if(currentPage==='reports'){
-try{const [products,sales,expenses]=await Promise.all([fetchRows('products'),fetchRows('sales'),fetchRows('expenses')]);cached.products=products;cached.sales=sales;cached.expenses=expenses;renderReports();}
-catch(e){main.innerHTML=`<h1 class="page-title">📊 Laporan dan Keuntungan</h1><div class="panel"><div class="notice error">${esc(e.message)}</div><button class="btn btn-primary" onclick="loadPage()">Cuba lagi</button></div>`;}
-return;
-}
-if(['recipes','invoices'].includes(currentPage)){
-const p=currentPage==='recipes'?{icon:'📖',title:'Resipi',desc:'Simpan resipi dan sukatan bahan bagi setiap produk.'}:{icon:'🧾',title:'Resit & Invoice',desc:'Pengurusan resit dan invois akan ditambah kemudian.'};
-main.innerHTML=`<h1 class="page-title">${p.icon} ${p.title}</h1><section class="panel"><p>${p.desc}</p><div class="notice success">Menu ini belum disambungkan kepada simpanan.</div></section>`;return;
-}
-const cfg=configs[currentPage];
-if(!cfg){main.innerHTML='<div class="panel">Menu tidak ditemui. Sila muat semula halaman.</div>';return;}
-try{cached[currentPage]=await fetchRows(cfg.table);renderTable(currentPage);}
-catch(e){main.innerHTML=`<div class="panel"><h2>Tak dapat memuatkan ${esc(cfg.title)}</h2><p>${esc(e.message)}</p><p>Semak jadual Supabase dan polisi akses (RLS).</p><button class="btn btn-primary" onclick="loadPage()">Cuba lagi</button></div>`;}
-}
-
-function renderDashboard(errors=[]){
-const st=cached.sales.reduce((s,r)=>s+Number(r.amount||0),0);
-const ex=cached.expenses.reduce((s,r)=>s+Number(r.amount||0),0);
-const profit=cached.products.reduce((s,r)=>s+(Number(r.selling_price||0)-Number(r.cost_price||0))*Number(r.stock_quantity||0),0);
-document.getElementById('mainContent').innerHTML=`
-<h1 class="page-title">Dashboard 🌸</h1><p class="subtitle">Selamat datang ke Manisan by Asyud.</p>
-<div class="cards">
-<div class="stat"><div class="stat-label">Jumlah produk</div><div class="stat-value">${cached.products.length}</div></div>
-<div class="stat"><div class="stat-label">Jenis bahan</div><div class="stat-value">${cached.ingredients.length}</div></div>
-<div class="stat"><div class="stat-label">Rekod pelanggan</div><div class="stat-value">${cached.customers.length}</div></div>
-<div class="stat"><div class="stat-label">Jumlah jualan direkod</div><div class="stat-value">${money(st)}</div></div>
-<div class="stat"><div class="stat-label">Jumlah perbelanjaan direkod</div><div class="stat-value">${money(ex)}</div></div>
-<div class="stat"><div class="stat-label">Jualan − perbelanjaan</div><div class="stat-value">${money(st-ex)}</div></div>
-<div class="stat"><div class="stat-label">Anggaran untung stok produk</div><div class="stat-value">${money(profit)}</div></div>
-</div><div class="panel"><h2>Selamat datang 💗</h2>
-<p>Pilih menu ☰ untuk mengurus produk, tempahan, jualan, stok bahan, resipi, resit, perbelanjaan, laporan dan pelanggan.</p>
-<p class="subtitle">Anggaran untung stok ialah (harga jual − modal) × kuantiti stok. Ia bukan keuntungan sebenar jualan.</p>
-${errors.length?'<div class="notice error">Ada jadual yang belum dapat dimuatkan. Buka menu berkaitan untuk melihat ralat.</div>':''}</div>`;
-}
-
-function renderTable(page){
-const cfg=configs[page],rows=cached[page]||[];
-const headers=cfg.columns.map(c=>`<th>${esc(c[1])}</th>`).join('');
-const body=rows.length?rows.map(r=>`<tr>${cfg.columns.map(([k])=>`<td>${['selling_price','cost_price','cost','amount'].includes(k)?money(r[k]):esc(r[k]??'—')}</td>`).join('')}
-<td class="actions"><button class="btn btn-light btn-small" onclick="editRow('${page}','${esc(r.id)}')">Edit</button> <button class="btn btn-danger btn-small" onclick="deleteRow('${page}','${esc(r.id)}')">Padam</button></td></tr>`).join(''):`<tr><td colspan="${cfg.columns.length+1}" class="empty">Belum ada rekod. Tekan “Tambah” untuk mula.</td></tr>`;
-document.getElementById('mainContent').innerHTML=`
-<h1 class="page-title">${cfg.icon} ${esc(cfg.title)}</h1><p class="subtitle">Urus dan kemas kini ${esc(cfg.title.toLowerCase())} anda.</p>
-<section class="panel"><div class="panel-head"><h2>Senarai ${esc(cfg.title)}</h2><button class="btn btn-primary" onclick="openForm('${page}')">＋ Tambah</button></div>
-<div class="table-wrap"><table><thead><tr>${headers}<th>Tindakan</th></tr></thead><tbody>${body}</tbody></table></div></section>`;
-}
-
-function renderBookings(){
-const rows=cached.bookings||[];
-const body=rows.length?rows.map(r=>`<tr>
-${bookingColumns.map(([k])=>`<td>${['total_amount','deposit_amount'].includes(k)?money(r[k]):esc(r[k]??'—')}</td>`).join('')}
-<td class="actions"><button class="btn btn-light btn-small" onclick="editBooking('${esc(r.id)}')">Edit</button>
-<button class="btn btn-danger btn-small" onclick="deleteBooking('${esc(r.id)}')">Padam</button></td></tr>`).join(''):
-`<tr><td colspan="${bookingColumns.length+1}" class="empty">Belum ada tempahan. Tekan “Tambah tempahan” untuk mula.</td></tr>`;
-document.getElementById('mainContent').innerHTML=`
-<h1 class="page-title">📋 Tempahan</h1>
-<p class="subtitle">Simpan dan urus tempahan pelanggan Manisan by Asyud.</p>
-<section class="panel"><div class="panel-head"><h2>Senarai tempahan</h2><button class="btn btn-primary" onclick="openBookingForm()">＋ Tambah tempahan</button></div>
-<div class="table-wrap"><table><thead><tr>${bookingColumns.map(c=>`<th>${esc(c[1])}</th>`).join('')}<th>Tindakan</th></tr></thead><tbody>${body}</tbody></table></div></section>`;
-}
-
-function buildFields(fields,row){
-return fields.map(f=>{
-const value=row?.[f.key]??(f.type==='date'?today():f.key==='quantity'?1:f.key==='total_amount'||f.key==='deposit_amount'?0:f.key==='status'?'Pending':'');
-const req=f.required?'required':'';let control='';
-if(f.type==='select'){
-control=`<select id="field_${f.key}" ${req}>${f.options.map(o=>`<option value="${esc(o)}" ${value===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
-}else if(f.type==='textarea'){control=`<textarea id="field_${f.key}" ${req}>${esc(value)}</textarea>`;}
-else{control=`<input id="field_${f.key}" type="${f.type||'text'}" value="${esc(value)}" ${req} ${f.min!==undefined?`min="${f.min}"`:''} ${f.step?`step="${f.step}"`:''}>`;}
-return `<div class="field ${f.type==='textarea'?'full':''}"><label for="field_${f.key}">${esc(f.label)}${f.required?' *':''}</label>${control}</div>`;
-}).join('');
-}
-
-function openForm(page,row=null){
-const cfg=configs[page],isEdit=!!row;
-document.getElementById('modalRoot').innerHTML=`
-<div class="overlay" id="formOverlay"><section class="modal"><h2>${isEdit?'✏️ Edit':'＋ Tambah'} ${esc(cfg.title)}</h2>
-<form id="recordForm"><div class="form-grid">${buildFields(cfg.fields,row)}</div><div id="formNotice"></div>
-<div class="form-actions"><button class="btn btn-light" type="button" onclick="closeForm()">Batal</button><button class="btn btn-primary" type="submit" id="saveBtn">Simpan</button></div></form></section></div>`;
-document.getElementById('formOverlay').addEventListener('click',e=>{if(e.target.id==='formOverlay')closeForm();});
-document.getElementById('recordForm').addEventListener('submit',e=>saveRow(e,page,row));
-}
-
-function openBookingForm(row=null){
-const isEdit=!!row;
-document.getElementById('modalRoot').innerHTML=`
-<div class="overlay" id="formOverlay"><section class="modal"><h2>${isEdit?'✏️ Edit tempahan':'＋ Tambah tempahan'}</h2>
-<form id="bookingForm"><div class="form-grid">${buildFields(bookingFields,row)}</div><div id="formNotice"></div>
-<div class="form-actions"><button class="btn btn-light" type="button" onclick="closeForm()">Batal</button><button class="btn btn-primary" type="submit" id="saveBtn">Simpan tempahan</button></div></form></section></div>`;
-document.getElementById('formOverlay').addEventListener('click',e=>{if(e.target.id==='formOverlay')closeForm();});
-document.getElementById('bookingForm').addEventListener('submit',e=>saveBooking(e,row));
-}
+function today(){let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function notice(id,msg,type='error'){let e=document.getElementById(id);if(e)e.innerHTML=`<div class="notice ${type}">${esc(msg)}</div>`;}
 function closeForm(){document.getElementById('modalRoot').innerHTML='';}
-function editRow(page,id){const row=(cached[page]||[]).find(r=>String(r.id)===String(id));if(row)openForm(page,row);else alert('Rekod tidak ditemui. Muat semula senarai.');}
-function editBooking(id){const row=(cached.bookings||[]).find(r=>String(r.id)===String(id));if(row)openBookingForm(row);else alert('Tempahan tidak ditemui. Muat semula senarai.');}
+function closeMenu(){sidebar.classList.remove('open');backdrop.classList.remove('show');}
+const sidebar=document.getElementById('sidebar'),backdrop=document.getElementById('backdrop');
+document.getElementById('menuToggle').onclick=()=>{sidebar.classList.toggle('open');backdrop.classList.toggle('show')};
+backdrop.onclick=closeMenu;
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>{currentPage=b.dataset.page;document.querySelectorAll('.nav-btn').forEach(x=>x.classList.toggle('active',x===b));closeMenu();loadPage();});
+document.getElementById('authForm').onsubmit=async e=>{e.preventDefault();let b=document.getElementById('loginBtn');b.disabled=true;let {error}=await db.auth.signInWithPassword({email:authEmail.value.trim(),password:authPassword.value});b.disabled=false;if(error)notice('authNotice',error.message);};
+document.getElementById('registerBtn').onclick=async()=>{let email=authEmail.value.trim(),password=authPassword.value;if(!email||password.length<6)return notice('authNotice','Masukkan e-mel sah dan kata laluan minimum 6 aksara.');let {data,error}=await db.auth.signUp({email,password});if(error)notice('authNotice',error.message);else notice('authNotice',data.session?'Akaun berjaya didaftarkan.':'Semak e-mel jika pengesahan diperlukan.','success');};
+document.getElementById('logoutBtn').onclick=()=>db.auth.signOut();
+db.auth.onAuthStateChange((_event,session)=>showSession(session));
+function showSession(session){currentUser=session?.user||null;loginPage.classList.toggle('hidden',!!currentUser);appPage.classList.toggle('hidden',!currentUser);if(currentUser){userEmail.textContent=currentUser.email||'';loadPage();}}
+db.auth.getSession().then(({data})=>showSession(data.session));
+async function fetchRows(table){let {data,error}=await db.from(table).select('*').order('created_at',{ascending:false});if(error)throw error;return data||[];}
+async function loadPage(){
+mainContent.innerHTML='<section class="panel">Memuatkan data…</section>';
+if(!currentUser)return;
+if(currentPage==='dashboard'){let names=['products','ingredients','sales','expenses','customers'];let res=await Promise.allSettled(names.map(fetchRows));names.forEach((n,i)=>cached[n]=res[i].status==='fulfilled'?res[i].value:[]);renderDashboard();return;}
+if(currentPage==='bookings'){try{cached.bookings=await fetchRows('bookings');renderBookings();}catch(e){errorPage(e.message)}return;}
+if(currentPage==='recipes'){loadRecipesPage();return;}
+if(currentPage==='invoices'){loadInvoicesPage();return;}
+if(currentPage==='reports'){try{[cached.products,cached.sales,cached.expenses]=await Promise.all(['products','sales','expenses'].map(fetchRows));renderReports();}catch(e){errorPage(e.message)}return;}
+let cfg=configs[currentPage];if(!cfg)return;
+try{cached[currentPage]=await fetchRows(cfg.table);renderTable(currentPage);}catch(e){errorPage(e.message);}
+}
+function errorPage(msg){mainContent.innerHTML=`<section class="panel"><div class="notice error">${esc(msg)}</div><button class="btn btn-primary" onclick="loadPage()">Cuba lagi</button></section>`;}
+function renderDashboard(){
+let sales=cached.sales.reduce((s,r)=>s+Number(r.amount||0),0),expenses=cached.expenses.reduce((s,r)=>s+Number(r.amount||0),0);
+mainContent.innerHTML=`<h1 class="page-title">Dashboard 🌸</h1><p class="subtitle">Selamat datang ke Manisan by Asyud.</p><div class="cards">
+${[['Jumlah produk',cached.products.length],['Jenis bahan',cached.ingredients.length],['Pelanggan',cached.customers.length],['Jumlah jualan',money(sales)],['Perbelanjaan',money(expenses)],['Jualan − perbelanjaan',money(sales-expenses)]].map(([a,b])=>`<div class="stat"><div class="stat-label">${a}</div><div class="stat-value">${b}</div></div>`).join('')}
+</div><section class="panel"><h2>Selamat datang 💗</h2><p>Gunakan menu untuk mengurus produk, tempahan, resipi, jualan dan kewangan.</p></section>`;
+}
+function renderTable(page){
+let c=configs[page],rows=cached[page]||[];
+mainContent.innerHTML=`<h1 class="page-title">${c.icon} ${c.title}</h1><p class="subtitle">Urus ${c.title.toLowerCase()} anda.</p><section class="panel"><div class="panel-head"><h2>Senarai ${c.title}</h2><button class="btn btn-primary" onclick="openRecord('${page}')">＋ Tambah</button></div><div class="table-wrap"><table><thead><tr>${c.cols.map(x=>`<th>${x[1]}</th>`).join('')}<th>Tindakan</th></tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${c.cols.map(([k])=>`<td>${['selling_price','cost_price','cost','amount'].includes(k)?money(r[k]):esc(r[k]??'—')}</td>`).join('')}<td><button class="btn btn-light btn-small" onclick="openRecord('${page}','${esc(r.id)}')">Edit</button><button class="btn btn-danger btn-small" onclick="deleteRecord('${page}','${esc(r.id)}')">Padam</button></td></tr>`).join(''):`<tr><td colspan="${c.cols.length+1}" class="empty">Belum ada rekod.</td></tr>`}</tbody></table></div></section>`;
+}
+function renderBookings(){
+mainContent.innerHTML=`<h1 class="page-title">📋 Tempahan</h1><p class="subtitle">Urus tempahan pelanggan.</p><section class="panel"><div class="panel-head"><h2>Senarai tempahan</h2><button class="btn btn-primary" onclick="openBooking()">＋ Tambah tempahan</button></div><div class="table-wrap"><table><thead><tr>${bookingCols.map(x=>`<th>${x[1]}</th>`).join('')}<th>Tindakan</th></tr></thead><tbody>${cached.bookings.length?cached.bookings.map(r=>`<tr>${bookingCols.map(([k])=>`<td>${['total_amount','deposit_amount'].includes(k)?money(r[k]):esc(r[k]??'—')}</td>`).join('')}<td><button class="btn btn-light btn-small" onclick="openBooking('${esc(r.id)}')">Edit</button><button class="btn btn-danger btn-small" onclick="deleteBooking('${esc(r.id)}')">Padam</button></td></tr>`).join(''):`<tr><td colspan="11" class="empty">Belum ada tempahan.</td></tr>`}</tbody></table></div></section>`;
+}
+function fieldsHtml(fields,row={}){
+return fields.map(f=>{let [k,label,type]=f,v=row[k]??(type==='date'?today():k==='status'?'Pending':k==='quantity'?1:k.includes('amount')?0:'');let control=type==='textarea'?`<textarea id="f_${k}">${esc(v)}</textarea>`:type==='select'?`<select id="f_${k}">${['Pending','In Progress','Completed','Cancelled'].map(s=>`<option ${v===s?'selected':''}>${s}</option>`).join('')}</select>`:`<input id="f_${k}" type="${type}" value="${esc(v)}" ${type==='number'?'min="0" step="any"':''} ${!['notes','address','phone','category','customer_name'].includes(k)?'required':''}>`;return `<div class="field ${type==='textarea'?'full':''}"><label>${label}</label>${control}</div>`;}).join('');
+}
+function openRecord(page,id=null){
+let c=configs[page],row=id?(cached[page]||[]).find(x=>String(x.id)===String(id)):null;
+modalRoot.innerHTML=`<div class="overlay" id="ov"><section class="modal"><h2>${row?'Edit':'Tambah'} ${c.title}</h2><form id="rf"><div class="form-grid">${fieldsHtml(c.fields,row||{})}</div><div id="fm"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan</button></div></form></section></div>`;
+rf.onsubmit=async e=>{e.preventDefault();let p={user_id:currentUser.id};c.fields.forEach(([k,,t])=>{let v=document.getElementById('f_'+k).value;p[k]=t==='number'?Number(v):v;});let q=row?db.from(c.table).update(p).eq('id',row.id).eq('user_id',currentUser.id):db.from(c.table).insert(p);let {error}=await q;if(error)return notice('fm',error.message);closeForm();loadPage();};
+}
+function openBooking(id=null){
+let row=id?cached.bookings.find(x=>String(x.id)===String(id)):null;
+modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>${row?'Edit':'Tambah'} tempahan</h2><form id="bf"><div class="form-grid">${fieldsHtml(bookingFields,row||{})}</div><div id="bm"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan tempahan</button></div></form></section></div>`;
+bf.onsubmit=async e=>{e.preventDefault();let p={user_id:currentUser.id};bookingFields.forEach(([k,,t])=>{let v=document.getElementById('f_'+k).value;p[k]=t==='number'?Number(v):v;});if(p.deposit_amount>p.total_amount)return notice('bm','Deposit tidak boleh melebihi jumlah harga.');let q=row?db.from('bookings').update(p).eq('id',row.id).eq('user_id',currentUser.id):db.from('bookings').insert(p);let {error}=await q;if(error)return notice('bm',error.message);closeForm();loadPage();};
+}
+async function deleteRecord(page,id){if(!confirm('Padam rekod ini?'))return;let {error}=await db.from(configs[page].table).delete().eq('id',id).eq('user_id',currentUser.id);if(error)alert(error.message);else loadPage();}
+async function deleteBooking(id){if(!confirm('Padam tempahan ini?'))return;let {error}=await db.from('bookings').delete().eq('id',id).eq('user_id',currentUser.id);if(error)alert(error.message);else loadPage();}
 
-async function saveRow(event,page,row){
-event.preventDefault();const cfg=configs[page],payload={};
-for(const f of cfg.fields){const el=document.getElementById('field_'+f.key);let v=el.value.trim();if(f.type==='number')v=v===''?null:Number(v);payload[f.key]=v;}
-if(!currentUser)return notice('formNotice','Sila log masuk semula.');
-payload.user_id=currentUser.id;
-const btn=document.getElementById('saveBtn');setLoading(btn,true,'Simpan');
-let query=row?db.from(cfg.table).update(payload).eq('id',row.id).eq('user_id',currentUser.id):db.from(cfg.table).insert(payload);
-const {error}=await query;setLoading(btn,false,row?'Simpan':'Simpan');
-if(error){notice('formNotice',error.message);return;}
-closeForm();await loadPage();
+/* RESIPI */
+let recipeCache=[];
+async function loadRecipesPage(){
+try{
+let {data,error}=await db.from('recipes').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});if(error)throw error;recipeCache=data||[];
+mainContent.innerHTML=`<h1 class="page-title">📖 Buku Resipi</h1><p class="subtitle">Simpan resipi dan kira modal bahan.</p><section class="panel"><div class="panel-head"><h2>Senarai resipi</h2><button class="btn btn-primary" onclick="newRecipe()">＋ Tambah resipi</button></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Hasil</th><th>Jumlah modal</th><th>Modal seunit</th><th>Tindakan</th></tr></thead><tbody>${recipeCache.length?recipeCache.map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.yield_quantity)} ${esc(r.yield_unit)}</td><td>${money(r.total_cost)}</td><td>${money(Number(r.total_cost||0)/Math.max(Number(r.yield_quantity||1),1))}</td><td><button class="btn btn-light btn-small" onclick="viewRecipe('${r.id}')">Bahan</button><button class="btn btn-danger btn-small" onclick="deleteRecipe('${r.id}')">Padam</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Belum ada resipi.</td></tr>`}</tbody></table></div></section>`;
+}catch(e){errorPage(e.message);}
+}
+function newRecipe(){
+modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>Tambah resipi</h2><form id="recipeForm"><div class="field"><label>Nama resipi *</label><input id="rname" required placeholder="Contoh: Cheesekut Milo"></div><div class="form-grid"><div class="field"><label>Jumlah hasil</label><input id="ryield" type="number" min="0.01" step="any" value="8" required></div><div class="field"><label>Unit hasil</label><input id="runit" value="bekas" required></div></div><div class="field"><label>Cara penyediaan</label><textarea id="rsteps"></textarea></div><div class="field"><label>Catatan</label><textarea id="rnotes"></textarea></div><div id="rn"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan resipi</button></div></form></section></div>`;
+recipeForm.onsubmit=async e=>{e.preventDefault();let {data,error}=await db.from('recipes').insert({user_id:currentUser.id,name:rname.value.trim(),yield_quantity:Number(ryield.value),yield_unit:runit.value.trim()||'bekas',instructions:rsteps.value,notes:rnotes.value,total_cost:0}).select().single();if(error)return notice('rn',error.message);closeForm();await loadRecipesPage();await viewRecipe(data.id);};
+}
+async function viewRecipe(id){
+let r=recipeCache.find(x=>String(x.id)===String(id));if(!r)return;
+mainContent.innerHTML=`<h1 class="page-title">📖 ${esc(r.name)}</h1><p class="subtitle">Masukkan kos setiap unit bahan yang digunakan.</p><section class="panel"><div class="panel-head"><h2>Tambah bahan</h2><button class="btn btn-light" onclick="loadRecipesPage()">← Kembali</button></div><form id="ingredientForm"><div class="field"><label>Nama bahan</label><input id="inName" required placeholder="Contoh: Cream cheese"></div><div class="form-grid"><div class="field"><label>Kuantiti digunakan</label><input id="inQty" type="number" min="0.001" step="any" required></div><div class="field"><label>Unit</label><select id="inUnit"><option>g</option><option>kg</option><option>ml</option><option>L</option><option>pcs</option></select></div></div><div class="field"><label>Kos bagi setiap unit (RM)</label><input id="inCost" type="number" min="0" step="any" required></div><p class="subtitle">Contoh: harga 250g cream cheese RM10.95. Kos setiap gram ialah RM10.95 ÷ 250 = RM0.0438.</p><div id="inNotice"></div><button class="btn btn-primary">＋ Tambah bahan</button></form></section><section class="panel"><h2>Senarai bahan</h2><div id="ingredientList">Memuatkan…</div><h2 id="recipeTotal"></h2><p><b>Cara penyediaan:</b> ${esc(r.instructions||'Belum diisi')}</p><p><b>Catatan:</b> ${esc(r.notes||'Tiada')}</p></section>`;
+ingredientForm.onsubmit=async e=>{e.preventDefault();let {error}=await db.from('recipe_ingredients').insert({user_id:currentUser.id,recipe_id:id,ingredient_name:inName.value.trim(),quantity:Number(inQty.value),unit:inUnit.value,cost_per_unit:Number(inCost.value)});if(error)return notice('inNotice',error.message);inName.value='';inQty.value='';inCost.value='';await refreshRecipeIngredients(id);};
+await refreshRecipeIngredients(id);
+}
+async function refreshRecipeIngredients(id){
+let {data,error}=await db.from('recipe_ingredients').select('*').eq('user_id',currentUser.id).eq('recipe_id',id).order('created_at');if(error){notice('ingredientList',error.message);return;}
+let total=(data||[]).reduce((s,x)=>s+Number(x.quantity||0)*Number(x.cost_per_unit||0),0);
+ingredientList.innerHTML=data.length?`<div class="table-wrap"><table><thead><tr><th>Bahan</th><th>Kuantiti</th><th>Kos seunit</th><th>Jumlah</th><th></th></tr></thead><tbody>${data.map(x=>`<tr><td>${esc(x.ingredient_name)}</td><td>${esc(x.quantity)} ${esc(x.unit)}</td><td>${money(x.cost_per_unit)}</td><td>${money(Number(x.quantity)*Number(x.cost_per_unit))}</td><td><button class="btn btn-danger btn-small" onclick="deleteRecipeIngredient('${x.id}','${id}')">Padam</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Belum ada bahan.</p>';
+recipeTotal.textContent='Jumlah modal: '+money(total);
+let {error:upErr}=await db.from('recipes').update({total_cost:total}).eq('id',id).eq('user_id',currentUser.id);if(upErr)alert('Modal dikira tetapi gagal dikemas kini: '+upErr.message);
+let old=recipeCache.find(x=>String(x.id)===String(id));if(old)old.total_cost=total;
+}
+async function deleteRecipeIngredient(ingredientId,recipeId){if(!confirm('Padam bahan ini?'))return;let {error}=await db.from('recipe_ingredients').delete().eq('id',ingredientId).eq('recipe_id',recipeId).eq('user_id',currentUser.id);if(error)alert(error.message);else refreshRecipeIngredients(recipeId);}
+async function deleteRecipe(id){if(!confirm('Padam resipi ini dan semua bahannya?'))return;let {error}=await db.from('recipes').delete().eq('id',id).eq('user_id',currentUser.id);if(error)alert(error.message);else loadRecipesPage();}
+
+/* RESIT DAN INVOIS */
+async function loadInvoicesPage(){
+try{
+let {data,error}=await db.from('bookings').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});if(error)throw error;cached.bookings=data||[];
+mainContent.innerHTML=`<h1 class="page-title">🧾 Resit & Invois</h1><p class="subtitle">Cetak invois tempahan atau resit bayaran deposit.</p><section class="panel"><div class="panel-head"><h2>Tempahan pelanggan</h2><button class="btn btn-light" onclick="currentPage='bookings';loadPage()">📋 Urus tempahan</button></div><div class="table-wrap"><table><thead><tr><th>Pelanggan</th><th>Produk</th><th>Tarikh siap</th><th>Jumlah</th><th>Deposit</th><th>Baki</th><th>Dokumen</th></tr></thead><tbody>${cached.bookings.length?cached.bookings.map(b=>`<tr><td>${esc(b.customer_name)}</td><td>${esc(b.product_name)}</td><td>${esc(b.due_date||'—')}</td><td>${money(b.total_amount)}</td><td>${money(b.deposit_amount)}</td><td>${money(Math.max(0,Number(b.total_amount||0)-Number(b.deposit_amount||0)))}</td><td><button class="btn btn-light btn-small" onclick="printDocument('${esc(b.id)}','invoice')">Invois</button><button class="btn btn-primary btn-small" onclick="printDocument('${esc(b.id)}','receipt')">Resit</button></td></tr>`).join(''):`<tr><td colspan="7" class="empty">Tiada tempahan. Tambah tempahan dahulu.</td></tr>`}</tbody></table></div></section>`;
+}catch(e){errorPage(e.message);}
+}
+async function printDocument(id,type){
+const w=window.open('','_blank');if(!w){alert('Pop-up disekat. Benarkan pop-up atau buka laman menggunakan Safari.');return;}
+w.document.write('<p>Memuatkan dokumen…</p>');
+let {data:b,error}=await db.from('bookings').select('*').eq('id',id).eq('user_id',currentUser.id).single();
+if(error||!b){w.close();alert(error?.message||'Tempahan tidak ditemui');return;}
+let total=Number(b.total_amount||0),deposit=Number(b.deposit_amount||0),balance=Math.max(0,total-deposit),receipt=type==='receipt';
+let status=deposit>=total&&total>0?'Bayaran penuh':deposit>0?'Deposit diterima':'Belum menerima bayaran';
+w.document.open();w.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${receipt?'Resit':'Invois'} Manisan by Asyud</title><style>body{font-family:Arial;color:#49333d;padding:22px}.paper{max-width:700px;margin:auto;border:1px solid #f2dce5;border-radius:12px;padding:25px}h1{color:#c95783}.muted{color:#927c86;font-size:13px}.line{border-top:1px solid #f2dce5;margin:18px 0}table{width:100%;border-collapse:collapse;margin:15px 0}td,th{padding:11px 7px;text-align:left;border-bottom:1px solid #f2dce5}.right{text-align:right}.total{font-size:18px;font-weight:bold;color:#c95783}.print{background:#c95783;color:white;border:0;padding:12px;border-radius:8px;margin-bottom:15px}@media print{.print{display:none}.paper{border:0}}</style></head><body><button class="print" onclick="window.print()">Cetak / Simpan PDF</button><div class="paper"><h1>🍰 Manisan by Asyud</h1><p class="muted">Manisnya buat hari lebih bermakna ❤️</p><div class="line"></div><h2>${receipt?'RESIT BAYARAN':'INVOIS TEMPAHAN'}</h2><p><b>No. rujukan:</b> MB-${esc(b.id)}</p><p><b>Tarikh dokumen:</b> ${today()}</p><p><b>Nama pelanggan:</b> ${esc(b.customer_name)}</p><p><b>Telefon:</b> ${esc(b.phone||'—')}</p><p><b>Tarikh tempahan:</b> ${esc(b.order_date||'—')}</p><p><b>Tarikh siap:</b> ${esc(b.due_date||'—')}</p><table><thead><tr><th>Produk</th><th>Kuantiti</th><th class="right">Jumlah</th></tr></thead><tbody><tr><td>${esc(b.product_name)}</td><td>${esc(b.quantity)}</td><td class="right">${money(total)}</td></tr></tbody></table><table><tbody><tr><td>Jumlah harga</td><td class="right">${money(total)}</td></tr><tr><td>Deposit diterima</td><td class="right">${money(deposit)}</td></tr><tr><td class="total">Baki perlu dibayar</td><td class="right total">${money(balance)}</td></tr></tbody></table><p><b>Status bayaran:</b> ${status}</p><p><b>Status tempahan:</b> ${esc(b.status||'Pending')}</p><p><b>Catatan:</b> ${esc(b.notes||'Terima kasih kerana menyokong kami.')}</p><div class="line"></div><p class="muted">Terima kasih atas sokongan anda ❤️</p>${receipt?'<p class="muted">Resit ini merekodkan jumlah deposit dalam sistem. Sahkan bayaran sebenar sebelum mengeluarkan resit.</p>':''}</div></body></html>`);w.document.close();
 }
 
-async function saveBooking(event,row){
-event.preventDefault();
-if(!currentUser)return notice('formNotice','Sila log masuk semula.');
-const payload={};
-for(const f of bookingFields){
-const el=document.getElementById('field_'+f.key);
-let v=el.value.trim();
-if(f.type==='number')v=v===''?0:Number(v);
-payload[f.key]=v;
-}
-payload.user_id=currentUser.id;
-const btn=document.getElementById('saveBtn');
-setLoading(btn,true,'Menyimpan…');
-let query=row
-?db.from('bookings').update(payload).eq('id',row.id).eq('user_id',currentUser.id)
-:db.from('bookings').insert(payload);
-const {error}=await query;
-setLoading(btn,false,'Simpan tempahan');
-if(error){notice('formNotice',error.message);return;}
-closeForm();await loadPage();
-}
-
-async function deleteRow(page,id){
-const cfg=configs[page];
-if(!confirm(`Padam rekod ini daripada ${cfg.title}? Tindakan ini tidak boleh dibatalkan.`))return;
-const {error}=await db.from(cfg.table).delete().eq('id',id).eq('user_id',currentUser.id);
-if(error){alert('Tidak berjaya memadam: '+error.message);return;}await loadPage();
-}
-async function deleteBooking(id){
-if(!confirm('Padam tempahan ini? Tindakan ini tidak boleh dibatalkan.'))return;
-const {error}=await db.from('bookings').delete().eq('id',id).eq('user_id',currentUser.id);
-if(error){alert('Tidak berjaya memadam tempahan: '+error.message);return;}await loadPage();
-}
-
-/* Laporan dan Keuntungan */
+/* LAPORAN */
 function renderReports(){
-const main=document.getElementById('mainContent'),products=cached.products||[],sales=cached.sales||[],expenses=cached.expenses||[];
-const dates=[...sales.map(r=>r.sale_date).filter(Boolean),...expenses.map(r=>r.expense_date).filter(Boolean)].sort();
-const defaultStart=dates.length?dates[0]:today();
-main.innerHTML=`<h1 class="page-title">📊 Laporan dan Keuntungan</h1>
-<p class="subtitle">Ringkasan prestasi perniagaan Manisan by Asyud.</p>
-<section class="panel"><div class="form-grid">
-<div class="field"><label for="reportStart">Dari tarikh</label><input type="date" id="reportStart" value="${esc(defaultStart)}"></div>
-<div class="field"><label for="reportEnd">Hingga tarikh</label><input type="date" id="reportEnd" value="${esc(today())}"></div>
-</div><div class="form-actions"><button class="btn btn-primary" id="applyReport">Jana laporan</button></div></section><div id="reportResults"></div>`;
-function calculate(){
-const start=document.getElementById('reportStart').value,end=document.getElementById('reportEnd').value,result=document.getElementById('reportResults');
-if(!start||!end||start>end){result.innerHTML='<div class="notice error">Sila pilih julat tarikh yang sah.</div>';return;}
-const ps=sales.filter(r=>r.sale_date&&r.sale_date>=start&&r.sale_date<=end);
-const pe=expenses.filter(r=>r.expense_date&&r.expense_date>=start&&r.expense_date<=end);
-const totalSales=ps.reduce((s,r)=>s+Number(r.amount||0),0);
-const totalExpenses=pe.reduce((s,r)=>s+Number(r.amount||0),0);
-let knownCost=0,unmatchedQuantity=0,unmatchedSales=0,best={};
-ps.forEach(s=>{
-const p=products.find(x=>String(x.name||'').trim().toLowerCase()===String(s.product_name||'').trim().toLowerCase());
-if(p&&p.cost_price!==null&&p.cost_price!==undefined&&p.cost_price!=='')knownCost+=Number(p.cost_price||0)*Number(s.quantity||0);
-else{unmatchedQuantity+=Number(s.quantity||0);unmatchedSales+=Number(s.amount||0);}
-const n=s.product_name||'Produk tidak dinamakan';best[n]=(best[n]||0)+Number(s.quantity||0);
-});
-const ranking=Object.entries(best).sort((a,b)=>b[1]-a[1]);
-result.innerHTML=`<div class="cards">
-<div class="stat"><div class="stat-label">Jumlah jualan</div><div class="stat-value">${money(totalSales)}</div></div>
-<div class="stat"><div class="stat-label">Kos produk terjual (anggaran)</div><div class="stat-value">${money(knownCost)}</div></div>
-<div class="stat"><div class="stat-label">Jumlah perbelanjaan</div><div class="stat-value">${money(totalExpenses)}</div></div>
-<div class="stat"><div class="stat-label">Anggaran untung bersih</div><div class="stat-value">${money(totalSales-knownCost-totalExpenses)}</div></div></div>
-<section class="panel"><h2>Ringkasan laporan</h2><p>Tempoh: ${esc(start)} hingga ${esc(end)}</p>
-<p>Rekod jualan: ${ps.length}</p><p>Rekod perbelanjaan: ${pe.length}</p>
-<p>Kuantiti tanpa padanan kos: ${unmatchedQuantity}</p><p>Jumlah jualan tanpa padanan kos: ${money(unmatchedSales)}</p>
-<div class="notice">Anggaran untung ialah jumlah jualan − kos produk terjual − perbelanjaan. Kos menggunakan modal semasa dalam menu Produk &amp; Untung.</div></section>
-<section class="panel"><h2>🏆 Produk paling laris</h2>
-${ranking.length?`<div class="table-wrap"><table><thead><tr><th>Produk</th><th>Kuantiti terjual</th></tr></thead><tbody>${ranking.map(([n,q])=>`<tr><td>${esc(n)}</td><td>${esc(q)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Tiada rekod jualan bagi tempoh ini.</p>'}</section>`;
+let sales=cached.sales,expenses=cached.expenses,products=cached.products;
+mainContent.innerHTML=`<h1 class="page-title">📊 Laporan dan Keuntungan</h1><section class="panel"><div class="form-grid"><div class="field"><label>Dari tarikh</label><input id="startDate" type="date" value="${sales.map(x=>x.sale_date).filter(Boolean).sort()[0]||today()}"></div><div class="field"><label>Hingga tarikh</label><input id="endDate" type="date" value="${today()}"></div></div><button class="btn btn-primary" onclick="calculateReport()">Jana laporan</button></section><div id="reportResult"></div>`;calculateReport();
 }
-document.getElementById('applyReport').addEventListener('click',calculate);calculate();
+function calculateReport(){
+let start=startDate.value,end=endDate.value;if(!start||!end||start>end){reportResult.innerHTML='<div class="notice error">Julat tarikh tidak sah.</div>';return;}
+let ss=cached.sales.filter(x=>x.sale_date>=start&&x.sale_date<=end),ee=cached.expenses.filter(x=>x.expense_date>=start&&x.expense_date<=end);
+let income=ss.reduce((s,x)=>s+Number(x.amount||0),0),cost=ss.reduce((s,x)=>{let p=cached.products.find(p=>String(p.name).toLowerCase()===String(x.product_name).toLowerCase());return s+(p?Number(p.cost_price||0)*Number(x.quantity||0):0)},0),ex=ee.reduce((s,x)=>s+Number(x.amount||0),0);
+reportResult.innerHTML=`<div class="cards">${[['Jualan',money(income)],['Kos produk terjual (anggaran)',money(cost)],['Perbelanjaan',money(ex)],['Anggaran untung bersih',money(income-cost-ex)]].map(([a,b])=>`<div class="stat"><div class="stat-label">${a}</div><div class="stat-value">${b}</div></div>`).join('')}</div><section class="panel"><p>Tempoh: ${esc(start)} hingga ${esc(end)}</p><p>Rekod jualan: ${ss.length}</p><p>Rekod perbelanjaan: ${ee.length}</p><div class="notice success">Untung anggaran = jualan − kos produk terjual − perbelanjaan. Kos bergantung pada modal produk yang direkodkan.</div></section>`;
 }
-
-db.auth.getSession().then(({data})=>{
-const session=data?.session;
-if(session){currentUser=session.user;document.getElementById('loginPage').classList.add('hidden');document.getElementById('appPage').classList.remove('hidden');document.getElementById('userEmail').textContent=currentUser.email||'';loadPage();}
-});
 </script>
 </body>
 </html>
