@@ -318,8 +318,39 @@ function printCurrentDocument(){
  }
 }
 
-}
+} 
+async function downloadInvoicePDF(){
+ const paper = document.querySelector('.invoice-paper');
 
+ if (!paper) {
+   alert('Sila buka invois atau resit dahulu.');
+   return;
+ }
+
+ if (typeof html2pdf === 'undefined') {
+   alert('Pustaka PDF belum dimuatkan. Semak sambungan internet dan muat semula aplikasi.');
+   return;
+ }
+
+ const title = currentInvoiceType === 'receipt'
+   ? 'Resit-Manisan-by-Asyud'
+   : 'Invois-Manisan-by-Asyud';
+
+ const options = {
+   margin: 8,
+   filename: title + '.pdf',
+   image: { type: 'jpeg', quality: 0.98 },
+   html2canvas: { scale: 2, useCORS: true },
+   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+ };
+
+ try {
+   await html2pdf().set(options).from(paper).save();
+ } catch (e) {
+   alert('PDF gagal dijana. Sila cuba lagi.');
+   console.error(e);
+ }
+} 
 
 function shareInvoice(){
  const paper = document.querySelector('.invoice-paper');
