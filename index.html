@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manisan by Asyud</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#fff7f5;color:#573b43}
+header{background:#e9a6b5;padding:25px 18px;color:white;border-radius:0 0 22px 22px}
+h1{margin:0;font-size:25px}
+header p{margin-bottom:0}
+main{padding:18px}
+.card{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 3px 12px #0000000d}
+h2{font-size:18px;margin-top:0}
+input,button{box-sizing:border-box;width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:15px}
+input{border:1px solid #e6cbd1}
+button{border:0;background:#d87894;color:white;font-weight:bold}
+nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+nav button{background:#f4dce3;color:#653c49}
+.small{font-size:13px;color:#856d74}
+</style>
+</head>
+<body>
+<header>
+<h1>🍰 Manisan by Asyud</h1>
+<p>Aplikasi pengurusan bisnes manisan</p>
+</header>
+<main>
+<div class="card">
+<h2>Selamat datang ❤️</h2>
+<p>Urus jualan, produk dan pelanggan anda di satu tempat.</p>
+</div>
+<nav>
+<button onclick="show('produk')">🍰 Produk</button>
+<button onclick="show('pelanggan')">👩‍🍳 Pelanggan</button>
+<button onclick="show('jualan')">🧾 Jualan</button>
+<button onclick="show('stok')">📦 Stok bahan</button>
+<button onclick="show('resepi')">📖 Resepi</button>
+<button onclick="show('belian')">🛒 Senarai belian</button>
+</nav>
+<div id="content" class="card">
+<h2>Ringkasan</h2>
+<p>Selamat menguruskan Manisan by Asyud!</p>
+<p class="small">Versi permulaan aplikasi.</p>
+</div>
+</main>
+<script>
+function show(section){
+const names={
+produk:"Produk",
+pelanggan:"Pelanggan",
+jualan:"Jualan",
+stok:"Stok bahan",
+resepi:"Resepi",
+belian:"Senarai belian"
+};
+document.getElementById("content").innerHTML=
+"<h2>"+names[section]+"</h2><p>Bahagian "+names[section]+" akan dibina dalam langkah seterusnya.</p>";
+}
+</script>
+</body>
+</html>
