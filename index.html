@@ -1,7 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="ms"> 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script> 
+<html lang="ms">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -272,9 +271,7 @@ mainContent.innerHTML=`<div class="invoice-screen">
 <button class="btn btn-light" onclick="backToInvoiceList()">← Kembali ke Senarai Order</button>
 </div>
 <div class="invoice-actions no-print">
-
 <button class="btn btn-primary" onclick="printCurrentDocument()">🖨️ Cetak / Simpan PDF</button>
-<button class="btn btn-primary" onclick="shareInvoice()">📤 Kongsi Invois / Resit</button>
 <button class="btn btn-light" onclick="openDocumentForSafari()">↗ Buka untuk cetak melalui Safari</button>
 <button class="btn btn-light" onclick="backToInvoiceList()">Kembali</button>
 </div>
@@ -299,107 +296,15 @@ ${receipt?`<tr><td>Baki selepas deposit</td><td class="invoice-right">${money(ba
 <p class="print-hint no-print">Tip iPhone: tekan “Cetak / Simpan PDF”. Jika dialog cetakan tidak muncul dalam aplikasi skrin utama, tekan “Buka untuk cetak melalui Safari”.</p>
 </div>`;
 }
-
 function printCurrentDocument(){
- const paper=document.querySelector('.invoice-paper');
-
- if(!paper){
-   alert('Sila buka invois atau resit dahulu.');
-   return;
- }
-
- const btns=document.querySelectorAll('.invoice-actions button');
- const oldText=Array.from(btns).map(b=>b.innerText);
-
- try{
-   window.print();
- }catch(e){
-   alert('Cetakan tidak tersedia. Cuba buka aplikasi melalui Safari.');
- }
+try{window.print();}catch(e){alert('Cetakan terus tidak tersedia. Cuba buka dokumen melalui Safari.');}
 }
-
-} 
-async function downloadInvoicePDF(){
- const paper = document.querySelector('.invoice-paper');
-
- if (!paper) {
-   alert('Sila buka invois atau resit dahulu.');
-   return;
- }
-
- if (typeof html2pdf === 'undefined') {
-   alert('Pustaka PDF belum dimuatkan. Semak sambungan internet dan muat semula aplikasi.');
-   return;
- }
-
- const title = currentInvoiceType === 'receipt'
-   ? 'Resit-Manisan-by-Asyud'
-   : 'Invois-Manisan-by-Asyud';
-
- const options = {
-   margin: 8,
-   filename: title + '.pdf',
-   image: { type: 'jpeg', quality: 0.98 },
-   html2canvas: { scale: 2, useCORS: true },
-   jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
- };
-
- try {
-   await html2pdf().set(options).from(paper).save();
- } catch (e) {
-   alert('PDF gagal dijana. Sila cuba lagi.');
-   console.error(e);
- }
-} 
-
-function shareInvoice(){
- const paper = document.querySelector('.invoice-paper');
-
- if (!paper) {
-   alert('Sila buka invois atau resit dahulu.');
-   return;
- }
-
- const title = currentInvoiceType === 'receipt'
-   ? 'Resit Manisan by Asyud'
-   : 'Invois Manisan by Asyud';
-
- const text = title + '\n\n' + paper.innerText;
-
- if (navigator.share) {
-   navigator.share({ title: title, text: text })
-     .catch(function(err) {
-       if (err.name !== 'AbortError') {
-         copyInvoiceText(text);
-       }
-     });
- } else {
-   copyInvoiceText(text);
- }
-}
-
-function copyInvoiceText(text){
- if (navigator.clipboard && navigator.clipboard.writeText) {
-   navigator.clipboard.writeText(text)
-     .then(function(){
-       alert('Butiran invois disalin. Buka WhatsApp dan tampal.');
-     })
-     .catch(function(){
-       window.prompt('Salin butiran invois ini:', text);
-     });
- } else {
-   window.prompt('Salin butiran invois ini:', text);
- }
-}
-
 
 /* DIKEMAS KINI: BUKA DOKUMEN DALAM TAB BARU */
-
-async function openDocumentForSafari(){
+function openDocumentForSafari(){
  const paper=document.querySelector('.invoice-paper');
-
  if(!paper){
-   alert('Sila buka invois atau resit dahulu.');
+   alert('Invois tidak ditemui. Sila buka invois dahulu.');
    return;
  }
 
@@ -407,7 +312,7 @@ async function openDocumentForSafari(){
    ?'Resit Manisan by Asyud'
    :'Invois Manisan by Asyud';
 
- const styles=Array.from(document.querySelectorAll('style'))
+ const styles=[...document.querySelectorAll('style')]
    .map(s=>s.innerHTML)
    .join('\n');
 
@@ -422,20 +327,44 @@ ${styles}
 body{background:#fff;padding:16px}
 .invoice-paper{max-width:800px;margin:0 auto;box-shadow:none}
 .invoice-inner{padding:30px}
+.toolbar{max-width:800px;margin:0 auto 14px;display:flex;gap:8px;flex-wrap:wrap}
+.toolbar button{border:0;border-radius:9px;padding:12px 15px;background:#c95783;color:white;font-weight:bold}
 @media print{
  @page{size:A4;margin:12mm}
  body{padding:0}
- .no-print{display:none!important}
+ .toolbar{display:none!important}
  .invoice-paper{border:0;max-width:none}
  .invoice-inner{padding:0}
 }
 </style>
 </head>
 <body>
+<div class="toolbar">
+<button onclick="window.print()">Cetak / Simpan PDF</button>
+<button onclick="history.back()">Kembali</button>
+</div>
 ${paper.outerHTML}
 </body>
 </html>`;
 
+ /* Cuba buka tab secara terus daripada sentuhan pengguna. */
+ let newTab=null;
+ try{
+   newTab=window.open('about:blank','_blank');
+ }catch(e){}
+
+ if(newTab){
+   try{
+     newTab.document.open();
+     newTab.document.write(html);
+     newTab.document.close();
+     return;
+   }catch(e){
+     try{newTab.close();}catch(closeError){}
+   }
+ }
+
+ /* Fallback: cuba kongsi fail HTML melalui menu Share iPhone. */
  try{
    const file=new File(
      [html],
@@ -445,19 +374,17 @@ ${paper.outerHTML}
      {type:'text/html'}
    );
 
-   if(navigator.share && navigator.canShare &&
-      navigator.canShare({files:[file]})){
-     await navigator.share({
-       title:title,
-       files:[file]
+   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+     navigator.share({title,files:[file]}).catch(error=>{
+       if(error.name!=='AbortError'){
+         alert('Dokumen tidak dapat dikongsi. Cuba buka aplikasi melalui Safari.');
+       }
      });
      return;
    }
- }catch(e){
-   if(e.name==='AbortError') return;
- }
+ }catch(e){}
 
- alert('Menu perkongsian fail tidak tersedia di sini. Buka alamat laman Manisan by Asyud terus dalam Safari untuk menggunakan fungsi cetakan iPhone.');
+ alert('Safari tidak dapat dibuka secara automatik. Buka laman aplikasi ini menggunakan Safari, kemudian buka invois dan tekan Cetak / Simpan PDF. Jika menu cetakan tersedia, pilih pilihan Simpan ke Fail atau PDF.');
 }
 
 /* LAPORAN KEUNTUNGAN */
