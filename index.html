@@ -2,216 +2,549 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Manisan by Asyud</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#fff7f5;color:#593b43;font-family:Arial,sans-serif}
-header{background:#e6a1b3;color:white;padding:25px 18px;border-radius:0 0 24px 24px}
-header h1{margin:0;font-size:26px}
-main{padding:16px;max-width:650px;margin:auto}
-.card{background:white;border-radius:16px;padding:17px;margin:14px 0;box-shadow:0 3px 12px #0000000b}
-h2{font-size:19px;margin-top:0}
-input,button{width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:15px}
-input{border:1px solid #e6cbd1;background:white}
-button{border:0;background:#d87894;color:white;font-weight:bold}
-button.secondary{background:#f4dce3;color:#653c49}
-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.small{font-size:13px;color:#856d74;overflow-wrap:anywhere}
-.product{border:1px solid #f0dce1;border-radius:12px;padding:12px;margin:10px 0}
-.price{font-size:18px;font-weight:bold;color:#bd5276}
-.hidden{display:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manisan by Asyud</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fff7f9;
+      color: #49333b;
+    }
+
+    header {
+      background: #b85c7a;
+      color: white;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 19px;
+      margin: 0;
+    }
+
+    #menuButton {
+      border: 0;
+      background: transparent;
+      color: white;
+      font-size: 27px;
+      cursor: pointer;
+    }
+
+    #menu {
+      display: none;
+      background: white;
+      padding: 10px;
+      box-shadow: 0 4px 10px #0001;
+    }
+
+    #menu button {
+      width: 100%;
+      text-align: left;
+      background: white;
+      color: #63384a;
+      border: 0;
+      padding: 13px;
+      border-bottom: 1px solid #f2dce4;
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 650px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: white;
+      padding: 18px;
+      margin-bottom: 18px;
+      border-radius: 15px;
+      box-shadow: 0 3px 12px #8b536010;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #a54467;
+      font-size: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e5c5d0;
+      border-radius: 9px;
+      font-size: 16px;
+      background: #fffdfd;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 9px;
+      padding: 11px 13px;
+      margin-top: 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .primary {
+      background: #b85c7a;
+      color: white;
+      width: 100%;
+    }
+
+    .edit {
+      background: #f7dce6;
+      color: #843d59;
+    }
+
+    .delete {
+      background: #ffe7e7;
+      color: #a12c2c;
+    }
+
+    .cancel {
+      background: #eee;
+      color: #444;
+      width: 100%;
+    }
+
+    .product {
+      border: 1px solid #f0d9e1;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+    }
+
+    .product h3 {
+      margin: 0 0 8px;
+    }
+
+    .price {
+      color: #a54467;
+      font-weight: bold;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      margin-top: 8px;
+    }
+
+    #status {
+      margin-top: 12px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .hidden { display: none; }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #956879;
+      font-size: 12px;
+    }
+  </style>
 </head>
+
 <body>
-<header>
-<h1>🍰 Manisan by Asyud</h1>
-<p>Manisnya setiap detik ❤️</p>
-</header>
-<main>
-<div class="card">
-<h2>☁️ Sambungan akaun</h2>
-<div id="status" class="small">Menyediakan sambungan...</div>
-<div id="auth">
-<input id="email" type="email" placeholder="Alamat emel">
-<input id="password" type="password" placeholder="Kata laluan (minimum 6 aksara)">
-<button onclick="authAction('login')">Log masuk</button>
-<button class="secondary" onclick="authAction('signup')">Daftar akaun baharu</button>
-<button class="secondary" onclick="resetPassword()">Lupa kata laluan?</button>
-</div>
-<div id="signed" class="hidden">
-<p id="who" class="small"></p>
-<button class="secondary" onclick="logout()">Log keluar</button>
-</div>
-</div>
+  <header>
+    <button id="menuButton" aria-label="Buka menu">☰</button>
+    <h1>🍰 Manisan by Asyud</h1>
+  </header>
 
-<div id="app" class="hidden">
-<div class="card">
-<h2>💗 Ringkasan</h2>
-<p>Jumlah produk: <strong id="count">0</strong></p>
-<p>Anggaran untung seunit terkumpul: <strong id="profit">RM0.00</strong></p>
-<p class="small">Untung di sini ialah harga jualan ditolak kos produk, belum termasuk kos lain.</p>
-</div>
+  <nav id="menu">
+    <button onclick="showSection('dashboard')">🏠 Dashboard</button>
+    <button onclick="showSection('produk')">🍰 Produk</button>
+    <button onclick="placeholder('Pesanan & Jualan')">🛍️ Pesanan & Jualan</button>
+    <button onclick="placeholder('Pelanggan')">👥 Pelanggan</button>
+    <button onclick="placeholder('Resipi')">📖 Resipi</button>
+    <button onclick="placeholder('Stok Bahan')">📦 Stok Bahan</button>
+    <button onclick="placeholder('Senarai Belian')">📝 Senarai Belian</button>
+    <button onclick="placeholder('Perbelanjaan')">💵 Perbelanjaan</button>
+    <button onclick="placeholder('Laporan & Keuntungan')">📊 Laporan & Keuntungan</button>
+    <button onclick="signOut()">🚪 Log keluar</button>
+  </nav>
 
-<div class="card">
-<h2>🧁 Tambah produk</h2>
-<input id="pname" placeholder="Nama produk, contoh: Cheesekut Milo">
-<input id="sell" type="number" min="0" step="0.01" placeholder="Harga jualan (RM)">
-<input id="cost" type="number" min="0" step="0.01" placeholder="Kos produk (RM)">
-<input id="stock" type="number" min="0" step="1" placeholder="Kuantiti stok">
-<button onclick="addProduct()">Simpan produk</button>
-</div>
+  <main>
+    <section id="loginSection" class="card">
+      <h2>Selamat Datang ❤️</h2>
+      <p>Log masuk ke akaun Manisan by Asyud.</p>
 
-<div class="card">
-<h2>🍰 Senarai produk</h2>
-<button class="secondary" onclick="loadProducts()">Muat semula produk</button>
-<div id="products">Belum ada produk.</div>
-</div>
-</div>
-</main>
+      <label for="email">E-mel</label>
+      <input id="email" type="email" placeholder="E-mel anda" autocomplete="email">
 
-<script>
-const PROJECT_URL = "https://zbanivcgtrpmhzzpfdlm.supabase.co";
-const PUBLISHABLE_KEY = "sb_publishable_nEQ6gUf5e9pZe_-YfnDbiA_W09oA7rD";
-const db = window.supabase.createClient(PROJECT_URL, PUBLISHABLE_KEY);
+      <label for="password">Kata laluan</label>
+      <input id="password" type="password" placeholder="Kata laluan" autocomplete="current-password">
 
-const el = id => document.getElementById(id);
-const money = n => Number(n || 0).toLocaleString("ms-MY",{style:"currency",currency:"MYR"});
+      <button class="btn primary" onclick="signIn()">Log masuk</button>
+      <p id="loginStatus"></p>
+    </section>
 
-function message(t){el("status").textContent=t;}
+    <section id="appSection" class="hidden">
+      <div id="dashboard" class="card">
+        <h2>Dashboard ❤️</h2>
+        <p>Selamat datang ke sistem pengurusan Manisan by Asyud.</p>
+        <p>Jumlah produk: <strong id="productCount">0</strong></p>
+        <button class="btn primary" onclick="showSection('produk')">
+          Urus Produk
+        </button>
+      </div>
 
-async function refreshSession(){
-  const {data,error}=await db.auth.getSession();
-  if(error){message("Ralat sambungan: "+error.message);return;}
-  showSession(data.session);
-}
+      <div id="produk" class="hidden">
+        <div class="card">
+          <h2 id="formTitle">Tambah Produk 🍰</h2>
 
-function showSession(session){
-  const loggedIn=!!session;
-  el("auth").classList.toggle("hidden",loggedIn);
-  el("signed").classList.toggle("hidden",!loggedIn);
-  el("app").classList.toggle("hidden",!loggedIn);
-  if(loggedIn){
-    el("who").textContent="Log masuk sebagai "+session.user.email;
-    message("Berjaya disambungkan ke Supabase.");
-    loadProducts();
-  }else{
-    message("Sila log masuk atau daftar akaun.");
-  }
-}
+          <label for="productName">Nama produk</label>
+          <input id="productName" type="text" placeholder="Contoh: Cheesekut Milo">
 
-async function authAction(action){
-  const email=el("email").value.trim();
-  const password=el("password").value;
-  if(!email||!password){message("Sila isi emel dan kata laluan.");return;}
-  if(password.length<6){message("Kata laluan perlu sekurang-kurangnya 6 aksara.");return;}
-  message("Sedang memproses...");
-  let result;
-  if(action==="signup"){
-    result=await db.auth.signUp({email,password});
-  }else{
-    result=await db.auth.signInWithPassword({email,password});
-  }
-  if(result.error){message("Tidak berjaya: "+result.error.message);return;}
-  if(action==="signup"&&!result.data.session){
-    message("Pendaftaran berjaya. Semak emel untuk pengesahan, kemudian log masuk.");
-    return;
-  }
-  message("Berjaya!");
-  showSession(result.data.session);
-}
+          <label for="sellingPrice">Harga jual (RM)</label>
+          <input id="sellingPrice" type="number" min="0" step="0.01" placeholder="7.00">
 
-async function resetPassword(){
-  const email=el("email").value.trim();
-  if(!email){message("Isi alamat emel dahulu.");return;}
-  const {error}=await db.auth.resetPasswordForEmail(email);
-  message(error?"Ralat: "+error.message:"Jika emel itu berdaftar, arahan tetapan semula akan dihantar.");
-}
+          <label for="costPrice">Modal (RM)</label>
+          <input id="costPrice" type="number" min="0" step="0.01" placeholder="3.00">
 
-async function logout(){
-  const {error}=await db.auth.signOut();
-  if(error){message(error.message);return;}
-  showSession(null);
-}
+          <label for="stockQuantity">Kuantiti stok</label>
+          <input id="stockQuantity" type="number" min="0" step="1" placeholder="8">
 
-async function loadProducts(){
-  el("products").textContent="Sedang memuatkan...";
-  const {data,error}=await db.from("products")
-    .select("id,name,selling_price,cost_price,stock_quantity")
-    .order("created_at",{ascending:false});
-  if(error){
-    el("products").textContent="Tak dapat memuatkan produk: "+error.message;
-    return;
-  }
-  el("count").textContent=data.length;
-  const totalProfit=data.reduce((sum,p)=>sum+(Number(p.selling_price||0)-Number(p.cost_price||0)),0);
-  el("profit").textContent=money(totalProfit);
-  if(!data.length){
-    el("products").textContent="Belum ada produk. Tambah produk pertama di atas.";
-    return;
-  }
-  el("products").innerHTML="";
-  data.forEach(p=>{
-    const item=document.createElement("div");
-    item.className="product";
-    const title=document.createElement("strong");
-    title.textContent=p.name;
-    const price=document.createElement("p");
-    price.className="price";
-    price.textContent=money(p.selling_price);
-    const detail=document.createElement("p");
-    detail.className="small";
-    detail.textContent="Kos: "+money(p.cost_price)+" | Untung seunit: "+money(Number(p.selling_price)-Number(p.cost_price))+" | Stok: "+(p.stock_quantity??0);
-    const del=document.createElement("button");
-    del.className="secondary";
-    del.textContent="Padam produk";
-    del.onclick=()=>deleteProduct(p.id,p.name);
-    item.append(title,price,detail,del);
-    el("products").appendChild(item);
-  });
-}
+          <button id="saveButton" class="btn primary" onclick="saveProduct()">
+            Simpan Produk
+          </button>
 
-async function addProduct(){
-  const name=el("pname").value.trim();
-  const selling=Number(el("sell").value);
-  const cost=Number(el("cost").value);
-  const stock=Number(el("stock").value||0);
-  if(!name){message("Sila isi nama produk.");return;}
-  if(el("sell").value===""||selling<0||el("cost").value===""||cost<0||stock<0||!Number.isInteger(stock)){
-    message("Semak harga, kos dan stok. Semua mesti sah dan tidak negatif.");
-    return;
-  }
-  message("Sedang menyimpan produk...");
-  const {data:{user}}=await db.auth.getUser();
-  if(!user){message("Sila log masuk semula.");return;}
-  const {error}=await db.from("products").insert({
-    user_id:user.id,
-    name,
-    selling_price:selling,
-    cost_price:cost,
-    stock_quantity:stock
-  });
-  if(error){message("Produk belum disimpan: "+error.message);return;}
-  el("pname").value="";
-  el("sell").value="";
-  el("cost").value="";
-  el("stock").value="";
-  message("Produk berjaya disimpan! ❤️");
-  await loadProducts();
-}
+          <button id="cancelButton" class="btn cancel hidden" onclick="cancelEdit()">
+            Batal Edit
+          </button>
 
-async function deleteProduct(id,name){
-  if(!confirm("Padam produk "+name+"?"))return;
-  const {error}=await db.from("products").delete().eq("id",id);
-  if(error){message("Tidak dapat memadam: "+error.message);return;}
-  message("Produk dipadam.");
-  loadProducts();
-}
+          <p id="status" role="status"></p>
+        </div>
 
-db.auth.onAuthStateChange((_event,session)=>showSession(session));
-refreshSession();
-</script>
+        <div class="card">
+          <h2>Senarai Produk 🧁</h2>
+          <div id="productList">Memuatkan produk...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Manisan by Asyud ❤️</footer>
+
+  <script>
+    const SUPABASE_URL = "https://zbanivcgtrpmhzzpfdlm.supabase.co";
+
+    // Masukkan Publishable Key Supabase anda di antara tanda petik.
+    const SUPABASE_KEY = "MASUKKAN_PUBLISHABLE_KEY_ANDA";
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    let currentUser = null;
+    let editingProductId = null;
+    let products = [];
+
+    const menu = document.getElementById("menu");
+
+    document.getElementById("menuButton").addEventListener("click", () => {
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    function showSection(sectionId) {
+      menu.style.display = "none";
+
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("produk").classList.add("hidden");
+
+      document.getElementById(sectionId).classList.remove("hidden");
+    }
+
+    function placeholder(sectionName) {
+      menu.style.display = "none";
+      alert(sectionName + " belum diaktifkan. Kita boleh bina fungsi ini seterusnya.");
+    }
+
+    async function signIn() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const status = document.getElementById("loginStatus");
+
+      if (!email || !password) {
+        status.textContent = "Sila isi e-mel dan kata laluan.";
+        return;
+      }
+
+      status.textContent = "Sedang log masuk...";
+
+      const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        status.textContent = "Log masuk gagal: " + error.message;
+        return;
+      }
+
+      currentUser = data.user;
+      await startApp();
+    }
+
+    async function startApp() {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("appSection").classList.remove("hidden");
+      showSection("dashboard");
+      await loadProducts();
+    }
+
+    async function signOut() {
+      const { error } = await db.auth.signOut();
+
+      if (error) {
+        alert("Gagal log keluar: " + error.message);
+        return;
+      }
+
+      currentUser = null;
+      editingProductId = null;
+      menu.style.display = "none";
+      document.getElementById("appSection").classList.add("hidden");
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("loginStatus").textContent = "";
+    }
+
+    async function loadProducts() {
+      if (!currentUser) return;
+
+      const list = document.getElementById("productList");
+      list.textContent = "Memuatkan produk...";
+
+      const { data, error } = await db
+        .from("products")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        list.textContent = "Gagal memuatkan produk: " + error.message;
+        return;
+      }
+
+      products = data || [];
+      document.getElementById("productCount").textContent = products.length;
+
+      if (products.length === 0) {
+        list.textContent = "Belum ada produk. Tambah produk pertama anda.";
+        return;
+      }
+
+      list.innerHTML = products.map(product => `
+        <div class="product">
+          <h3>${escapeHTML(product.name)}</h3>
+          <p class="price">Harga jual: ${money(product.selling_price)}</p>
+          <p>Modal: ${money(product.cost_price)}</p>
+          <p>Untung seunit: ${money(Number(product.selling_price || 0) - Number(product.cost_price || 0))}</p>
+          <p>Stok: ${Number(product.stock_quantity || 0)}</p>
+
+          <div class="actions">
+            <button class="btn edit" onclick="editProduct('${product.id}')">
+              ✏️ Edit
+            </button>
+            <button class="btn delete" onclick="deleteProduct('${product.id}')">
+              🗑️ Padam
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function money(value) {
+      return "RM " + Number(value || 0).toFixed(2);
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[character]);
+    }
+
+    async function saveProduct() {
+      if (!currentUser) return;
+
+      const name = document.getElementById("productName").value.trim();
+      const sellingPrice = document.getElementById("sellingPrice").value;
+      const costPrice = document.getElementById("costPrice").value;
+      const stockQuantity = document.getElementById("stockQuantity").value;
+      const status = document.getElementById("status");
+      const saveButton = document.getElementById("saveButton");
+
+      if (!name || sellingPrice === "" || costPrice === "" || stockQuantity === "") {
+        status.textContent = "Sila lengkapkan semua ruangan.";
+        return;
+      }
+
+      if (
+        Number(sellingPrice) < 0 ||
+        Number(costPrice) < 0 ||
+        !Number.isInteger(Number(stockQuantity)) ||
+        Number(stockQuantity) < 0
+      ) {
+        status.textContent = "Semak harga dan kuantiti stok.";
+        return;
+      }
+
+      const productData = {
+        name,
+        selling_price: Number(sellingPrice),
+        cost_price: Number(costPrice),
+        stock_quantity: Number(stockQuantity),
+        user_id: currentUser.id
+      };
+
+      saveButton.disabled = true;
+      status.textContent = "Sedang menyimpan...";
+
+      let result;
+
+      if (editingProductId) {
+        result = await db
+          .from("products")
+          .update({
+            name: productData.name,
+            selling_price: productData.selling_price,
+            cost_price: productData.cost_price,
+            stock_quantity: productData.stock_quantity
+          })
+          .eq("id", editingProductId)
+          .eq("user_id", currentUser.id)
+          .select();
+      } else {
+        result = await db
+          .from("products")
+          .insert(productData)
+          .select();
+      }
+
+      saveButton.disabled = false;
+
+      if (result.error) {
+        status.textContent = "Tidak berjaya: " + result.error.message;
+        return;
+      }
+
+      if (!result.data || result.data.length === 0) {
+        status.textContent = "Tiada perubahan disimpan. Semak polisi akses Supabase.";
+        return;
+      }
+
+      status.textContent = editingProductId
+        ? "Produk berjaya dikemas kini ❤️"
+        : "Produk berjaya ditambah ❤️";
+
+      cancelEdit();
+      await loadProducts();
+    }
+
+    function editProduct(id) {
+      const product = products.find(item => item.id === id);
+      if (!product) return;
+
+      editingProductId = id;
+
+      document.getElementById("productName").value = product.name || "";
+      document.getElementById("sellingPrice").value = product.selling_price ?? "";
+      document.getElementById("costPrice").value = product.cost_price ?? "";
+      document.getElementById("stockQuantity").value = product.stock_quantity ?? 0;
+
+      document.getElementById("formTitle").textContent = "Edit Produk ✏️";
+      document.getElementById("saveButton").textContent = "Simpan Perubahan";
+      document.getElementById("cancelButton").classList.remove("hidden");
+      document.getElementById("status").textContent = "";
+
+      showSection("produk");
+      document.getElementById("productName").focus();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function cancelEdit() {
+      editingProductId = null;
+
+      document.getElementById("productName").value = "";
+      document.getElementById("sellingPrice").value = "";
+      document.getElementById("costPrice").value = "";
+      document.getElementById("stockQuantity").value = "";
+
+      document.getElementById("formTitle").textContent = "Tambah Produk 🍰";
+      document.getElementById("saveButton").textContent = "Simpan Produk";
+      document.getElementById("cancelButton").classList.add("hidden");
+    }
+
+    async function deleteProduct(id) {
+      const product = products.find(item => item.id === id);
+      if (!product) return;
+
+      const confirmed = confirm("Padam produk " + product.name + "?");
+      if (!confirmed) return;
+
+      const { error } = await db
+        .from("products")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", currentUser.id);
+
+      if (error) {
+        alert("Gagal memadam produk: " + error.message);
+        return;
+      }
+
+      if (editingProductId === id) cancelEdit();
+
+      await loadProducts();
+      alert("Produk telah dipadam.");
+    }
+
+    async function checkSession() {
+      const { data, error } = await db.auth.getSession();
+
+      if (error) {
+        document.getElementById("loginStatus").textContent = error.message;
+        return;
+      }
+
+      if (data.session) {
+        currentUser = data.session.user;
+        await startApp();
+      }
+    }
+
+    checkSession();
+  </script>
 </body>
 </html>
