@@ -118,6 +118,7 @@ td{overflow-wrap:anywhere}
 <button class="nav-btn" data-page="recipes">📖 Resipi</button>
 <button class="nav-btn" data-page="invoices">🧾 Resit &amp; Invoice</button>
 <button class="nav-btn" data-page="expenses">💳 Perbelanjaan</button>
+<button class="nav-btn" data-page="reports">📊 Laporan dan Keuntungan</button>
 <button class="nav-btn" data-page="customers">👩‍🍳 Pelanggan</button>
 </aside>
 <main class="main" id="mainContent"></main>
@@ -208,6 +209,7 @@ function setLoading(btn,loading,label){
 btn.disabled=loading;
 btn.textContent=loading?'Sila tunggu…':label;
 }
+
 function closeMenu(){
 document.getElementById('sidebar').classList.remove('open');
 document.getElementById('backdrop').classList.remove('show');
@@ -279,7 +281,25 @@ renderDashboard(results.filter(x=>x.status==='rejected').map(x=>x.reason.message
 return;
 }
 
-/* Halaman baharu: tidak menulis ke jadual yang belum disahkan. */
+/* Laporan dan Keuntungan: hanya membaca rekod sedia ada */
+if(currentPage==='reports'){
+try{
+const [products,sales,expenses]=await Promise.all([
+fetchRows('products'),fetchRows('sales'),fetchRows('expenses')
+]);
+cached.products=products;
+cached.sales=sales;
+cached.expenses=expenses;
+renderReports();
+}catch(e){
+main.innerHTML=`<h1 class="page-title">📊 Laporan dan Keuntungan</h1>
+<div class="panel"><div class="notice error">${esc(e.message)}</div>
+<button class="btn btn-primary" onclick="loadPage()">Cuba lagi</button></div>`;
+}
+return;
+}
+
+/* Halaman ini belum disambungkan kepada jadual simpanan */
 if(['bookings','recipes','invoices'].includes(currentPage)){
 const pages={
 bookings:{
@@ -342,10 +362,152 @@ document.getElementById('mainContent').innerHTML=`
 </div>
 <div class="panel">
 <h2>Selamat datang 💗</h2>
-<p>Pilih menu ☰ untuk mengurus produk &amp; untung, tempahan, jualan, stok bahan, resipi, resit &amp; invoice, perbelanjaan dan pelanggan.</p>
+<p>Pilih menu ☰ untuk mengurus produk &amp; untung, tempahan, jualan, stok bahan, resipi, resit &amp; invoice, perbelanjaan, laporan dan pelanggan.</p>
 <p class="subtitle">Anggaran untung stok ialah (harga jual − modal) × kuantiti stok. Ia bukan keuntungan sebenar jualan.</p>
 ${errors.length?'<div class="notice error">Ada jadual yang belum dapat dimuatkan. Buka menu berkaitan untuk melihat mesej ralat.</div>':''}
 </div>`;
+}
+
+/* Paparan Laporan dan Keuntungan */
+function renderReports(){
+const main=document.getElementById('mainContent');
+const products=cached.products||[];
+const sales=cached.sales||[];
+const expenses=cached.expenses||[];
+
+const allDates=[
+...sales.map(r=>r.sale_date).filter(Boolean),
+...expenses.map(r=>r.expense_date).filter(Boolean)
+].sort();
+
+const defaultStart=allDates.length?allDates[0]:today();
+
+main.innerHTML=`
+<h1 class="page-title">📊 Laporan dan Keuntungan</h1>
+<p class="subtitle">Ringkasan prestasi perniagaan Manisan by Asyud.</p>
+<section class="panel">
+<div class="form-grid">
+<div class="field">
+<label for="reportStart">Dari tarikh</label>
+<input type="date" id="reportStart" value="${esc(defaultStart)}">
+</div>
+<div class="field">
+<label for="reportEnd">Hingga tarikh</label>
+<input type="date" id="reportEnd" value="${esc(today())}">
+</div>
+</div>
+<div class="form-actions">
+<button class="btn btn-primary" id="applyReport">Jana laporan</button>
+</div>
+</section>
+<div id="reportResults"></div>`;
+
+function calculate(){
+const start=document.getElementById('reportStart').value;
+const end=document.getElementById('reportEnd').value;
+const result=document.getElementById('reportResults');
+
+if(!start||!end||start>end){
+result.innerHTML='<div class="notice error">Sila pilih julat tarikh yang sah.</div>';
+return;
+}
+
+const periodSales=sales.filter(r=>
+r.sale_date&&r.sale_date>=start&&r.sale_date<=end
+);
+const periodExpenses=expenses.filter(r=>
+r.expense_date&&r.expense_date>=start&&r.expense_date<=end
+);
+
+const totalSales=periodSales.reduce(
+(sum,r)=>sum+Number(r.amount||0),0
+);
+const totalExpenses=periodExpenses.reduce(
+(sum,r)=>sum+Number(r.amount||0),0
+);
+
+let knownCost=0;
+let unmatchedQuantity=0;
+let unmatchedSales=0;
+
+periodSales.forEach(sale=>{
+const product=products.find(p=>
+String(p.name||'').trim().toLowerCase()===
+String(sale.product_name||'').trim().toLowerCase()
+);
+
+if(product&&product.cost_price!==null&&
+product.cost_price!==undefined&&product.cost_price!==''){
+knownCost+=Number(product.cost_price||0)*Number(sale.quantity||0);
+}else{
+unmatchedQuantity+=Number(sale.quantity||0);
+unmatchedSales+=Number(sale.amount||0);
+}
+});
+
+const estimatedProfit=totalSales-knownCost-totalExpenses;
+const bestSellers={};
+
+periodSales.forEach(sale=>{
+const name=sale.product_name||'Produk tidak dinamakan';
+bestSellers[name]=(bestSellers[name]||0)+Number(sale.quantity||0);
+});
+
+const ranking=Object.entries(bestSellers).sort((a,b)=>b[1]-a[1]);
+
+result.innerHTML=`
+<div class="cards">
+<div class="stat">
+<div class="stat-label">Jumlah jualan</div>
+<div class="stat-value">${money(totalSales)}</div>
+</div>
+<div class="stat">
+<div class="stat-label">Kos produk terjual (anggaran)</div>
+<div class="stat-value">${money(knownCost)}</div>
+</div>
+<div class="stat">
+<div class="stat-label">Jumlah perbelanjaan</div>
+<div class="stat-value">${money(totalExpenses)}</div>
+</div>
+<div class="stat">
+<div class="stat-label">Anggaran untung bersih</div>
+<div class="stat-value">${money(estimatedProfit)}</div>
+</div>
+</div>
+
+<section class="panel">
+<h2>Ringkasan laporan</h2>
+<p>Tempoh laporan: ${esc(start)} hingga ${esc(end)}</p>
+<p>Bilangan rekod jualan: ${periodSales.length}</p>
+<p>Bilangan rekod perbelanjaan: ${periodExpenses.length}</p>
+<p>Kuantiti jualan tanpa padanan kos produk: ${unmatchedQuantity}</p>
+<p>Jumlah jualan tanpa padanan kos produk: ${money(unmatchedSales)}</p>
+<div class="notice">
+Anggaran untung dikira sebagai jumlah jualan − kos produk terjual − perbelanjaan.
+Kos produk menggunakan modal semasa dalam menu Produk &amp; Untung.
+Jika modal pernah berubah, laporan jualan lama mungkin tidak tepat.
+Pastikan perbelanjaan tidak mengira kos produk yang sama dua kali.
+</div>
+</section>
+
+<section class="panel">
+<h2>🏆 Produk paling laris</h2>
+${ranking.length?`
+<div class="table-wrap">
+<table>
+<thead><tr><th>Produk</th><th>Kuantiti terjual</th></tr></thead>
+<tbody>
+${ranking.map(([name,qty])=>`
+<tr><td>${esc(name)}</td><td>${esc(qty)}</td></tr>
+`).join('')}
+</tbody>
+</table>
+</div>`:'<p class="empty">Tiada rekod jualan bagi tempoh ini.</p>'}
+</section>`;
+}
+
+document.getElementById('applyReport').addEventListener('click',calculate);
+calculate();
 }
 
 function renderTable(page){
