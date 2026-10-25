@@ -261,9 +261,13 @@ async function viewRecipe(id){
         <button class="btn btn-primary">＋ Tambah bahan</button>
       </form>
     </section>
-    <section class="panel">
-      <h2>Senarai bahan resipi</h2>
-      <div id="ingredientList">Memuatkan…</div>
+    <section class="panel">    
+<h2>Senarai bahan resipi</h2>
+<button class="btn btn-primary"
+  onclick="makeRecipeBatch('${r.id}')">
+  🍰 Buat Adunan / Tolak Stok
+</button>
+<div id="ingredientList">Memuatkan…</div> 
       <h2 id="recipeTotal"></h2>
       <p><b>Cara penyediaan:</b> ${esc(r.instructions||'Belum diisi')}</p>
       <p><b>Catatan:</b> ${esc(r.notes||'Tiada')}</p>
