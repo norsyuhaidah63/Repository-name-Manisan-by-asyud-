@@ -444,15 +444,25 @@ let displayUnit=chosenUnit==='base'
   recipeQty=qty*factor;
   displayUnit=u;
 } 
-  let {error}=await db.from('recipe_ingredients').insert({
-    user_id:currentUser.id,
-    recipe_id:id,
-    ingredient_id:item.id,
-    ingredient_name:item.name,
-    quantity:qty,
-    unit:chosenUnit==='base'?(item.unit||''):chosenUnit,
-    cost_per_unit:Number(item.cost||0)
-  });
+  
+let {error}=await db.from('recipe_ingredients').insert({
+  user_id:currentUser.id,
+  recipe_id:id,
+  ingredient_id:item.id,
+  ingredient_name:item.name,
+  quantity:recipeQty,
+  unit:displayUnit,
+  cost_per_unit:Number(item.cost||0)
+});
+
+if(error)
+  return notice('inNotice','Gagal menambah bahan: '+error.message);
+
+$('inQty').value='';
+$('inIngredient').value='';
+$('inUnit').value='base';
+
+await refreshRecipeIngredients(id);
 
   if(error)
     return notice('inNotice','Gagal menambah bahan: '+error.message);
