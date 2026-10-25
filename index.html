@@ -540,11 +540,22 @@ ${receipt?`<tr><td>Baki selepas deposit</td><td class="invoice-right">${money(ba
 </div></div>
 <p class="print-hint no-print">Tip iPhone: tekan “Cetak / Simpan PDF”. Jika dialog cetakan tidak muncul dalam aplikasi skrin utama, tekan “Buka untuk cetak melalui Safari”.</p>
 </div>`;
-}
+} 
 function printCurrentDocument(){
-try{window.print();}catch(e){alert('Cetakan terus tidak tersedia. Cuba buka dokumen melalui Safari.');}
-}
+  const paper = document.querySelector('.invoice-paper');
 
+  if (!paper) {
+    alert('Invois atau resit tidak ditemui. Sila buka dokumen dahulu.');
+    return;
+  }
+
+  try {
+    window.print();
+  } catch (e) {
+    alert('Cetakan terus tidak tersedia. Tekan "Buka untuk cetak melalui Safari".');
+  }
+} 
+ 
 /* DIKEMAS KINI: BUKA DOKUMEN DALAM TAB BARU */
 
 function openDocumentForSafari(){
