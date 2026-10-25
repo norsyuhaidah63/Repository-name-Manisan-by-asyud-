@@ -428,14 +428,12 @@ $('ingredientForm').onsubmit=async e=>{
 
   stockUnit=aliases[stockUnit]||stockUnit;
   let recipeQty=qty;
-  let displayUnit=stockUnit; 
-if(chosenUnit==='base'){
-  displayUnit=item.unit||'';
-}else{
+let displayUnit=chosenUnit==='base'
+  ?(item.unit||'')
+  :chosenUnit;
   let u=chosenUnit;
   let from=aliases[u]||u;
   let factor=conversion[stockUnit]?.[from];
-
   if(!factor){
     return notice(
       'inNotice',
