@@ -376,41 +376,99 @@ async function viewRecipe(id){
     stockItems.map(x=>
       `<option value="${esc(x.id)}">${esc(x.name)} — stok: ${esc(x.quantity??0)} ${esc(x.unit||'')}</option>`
     ).join('');
+select.onchange=()=>{
+  let item=stockItems.find(x=>String(x.id)===String(select.value));
+  let unit=item?.unit||'';
+  let sel=$('inUnit');
 
-  select.onchange=()=>{
-    let item=stockItems.find(x=>String(x.id)===String(select.value));
-    $('inUnit').value=item?.unit||'';
+  if(!item){
+    sel.value='base';
+    return;
+  }
+
+  sel.querySelector('option[value="base"]').textContent=
+    'Ikut unit stok ('+unit+')';
+  sel.value='base';
+};
+
+$('ingredientForm').onsubmit=async e=>{
+  e.preventDefault();
+
+  let item=stockItems.find(
+    x=>String(x.id)===String($('inIngredient').value)
+  );
+  let qty=Number($('inQty').value);
+  let chosenUnit=$('inUnit').value;
+
+  if(!item)return notice('inNotice','Sila pilih bahan daripada stok.');
+  if(!Number.isFinite(qty)||qty<=0)
+    return notice('inNotice','Masukkan kuantiti yang sah.');
+
+  let stockUnit=String(item.unit||'').toLowerCase();
+  let conversion={
+    g:{g:1,kg:1000},
+    ml:{ml:1,liter:1000},
+    pcs:{pcs:1,b:1}
   };
 
-  $('ingredientForm').onsubmit=async e=>{
-    e.preventDefault();
-
-    let item=stockItems.find(x=>String(x.id)===String($('inIngredient').value));
-    let qty=Number($('inQty').value);
-
-    if(!item)return notice('inNotice','Sila pilih bahan daripada stok.');
-    if(!Number.isFinite(qty)||qty<=0)return notice('inNotice','Masukkan kuantiti yang sah.');
-
-    let {error}=await db.from('recipe_ingredients').insert({
-      user_id:currentUser.id,
-      recipe_id:id,
-      ingredient_id:item.id,
-      ingredient_name:item.name,
-      quantity:qty,
-      unit:item.unit||'',
-      cost_per_unit:Number(item.cost||0)
-    });
-
-    if(error)return notice('inNotice','Gagal menambah bahan: '+error.message);
-
-    $('inQty').value='';
-    $('inIngredient').value='';
-    $('inUnit').value='';
-
-    await refreshRecipeIngredients(id);
+  let aliases={
+    gram:'g',kilogram:'kg',
+    liter:'liter',l:'liter',
+    mililiter:'ml',piece:'pcs',
+    biji:'pcs',unit:'pcs'
   };
+
+  stockUnit=aliases[stockUnit]||stockUnit;
+  let recipeQty=qty;
+  let displayUnit=stockUnit;
+
+  if(chosenUnit==='base'){
+    displayUnit=item.unit||'';
+  }else{
+    let u=chosenUnit;
+    if(u==='keping'||u==='cawan'||u==='sudu_besar'||u==='sudu_kecil'){
+      return notice(
+        'inNotice',
+        'Untuk cawan, sudu atau keping, kita perlu tetapkan sukatan khusus bahan dahulu. Pilih unit stok buat sementara.'
+      );
+    }
+
+    let from=aliases[u]||u;
+    let factor=conversion[stockUnit]?.[from];
+
+    if(!factor){
+      return notice(
+        'inNotice',
+        'Unit pilihan tidak sepadan dengan unit stok bahan. Pilih unit stok dahulu.'
+      );
+    }
+
+    recipeQty=qty*factor;
+    displayUnit=u;
+  }
+
+  let {error}=await db.from('recipe_ingredients').insert({
+    user_id:currentUser.id,
+    recipe_id:id,
+    ingredient_id:item.id,
+    ingredient_name:item.name,
+    quantity:recipeQty,
+    unit:displayUnit,
+    cost_per_unit:Number(item.cost||0)
+  });
+
+  if(error)
+    return notice('inNotice','Gagal menambah bahan: '+error.message);
+
+  $('inQty').value='';
+  $('inIngredient').value='';
+  $('inUnit').value='base';
 
   await refreshRecipeIngredients(id);
+};
+
+await refreshRecipeIngredients(id);
+
 }
 
 async function refreshRecipeIngredients(id){
