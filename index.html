@@ -428,33 +428,24 @@ $('ingredientForm').onsubmit=async e=>{
 
   stockUnit=aliases[stockUnit]||stockUnit;
   let recipeQty=qty;
-  let displayUnit=stockUnit;
+  let displayUnit=stockUnit; 
+if(chosenUnit==='base'){
+  displayUnit=item.unit||'';
+}else{
+  let u=chosenUnit;
+  let from=aliases[u]||u;
+  let factor=conversion[stockUnit]?.[from];
 
-  if(chosenUnit==='base'){
-    displayUnit=item.unit||'';
-  }else{
-    let u=chosenUnit;
-    if(u==='keping'||u==='cawan'||u==='sudu_besar'||u==='sudu_kecil'){
-      return notice(
-        'inNotice',
-        'Untuk cawan, sudu atau keping, kita perlu tetapkan sukatan khusus bahan dahulu. Pilih unit stok buat sementara.'
-      );
-    }
-
-    let from=aliases[u]||u;
-    let factor=conversion[stockUnit]?.[from];
-
-    if(!factor){
-      return notice(
-        'inNotice',
-        'Unit pilihan tidak sepadan dengan unit stok bahan. Pilih unit stok dahulu.'
-      );
-    }
-
-    recipeQty=qty*factor;
-    displayUnit=u;
+  if(!factor){
+    return notice(
+      'inNotice',
+      'Unit pilihan tidak sepadan dengan unit stok bahan. Pilih unit stok dahulu.'
+    );
   }
 
+  recipeQty=qty*factor;
+  displayUnit=u;
+}
   let {error}=await db.from('recipe_ingredients').insert({
     user_id:currentUser.id,
     recipe_id:id,
