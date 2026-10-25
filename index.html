@@ -670,9 +670,11 @@ ${paper.outerHTML}
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
 
-    // Buka paparan dokumen dalam tab yang sama
-    // supaya tidak bergantung pada tetingkap pop-up.
-    window.location.href = url;
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.click();
   } catch (e) {
     alert('Tidak dapat membuka dokumen. Sila buka aplikasi melalui Safari dan cuba lagi.');
   }
