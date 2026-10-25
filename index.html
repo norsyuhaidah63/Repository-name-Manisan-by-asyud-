@@ -227,20 +227,161 @@ function newRecipe(){
 modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>Tambah resipi</h2><form id="recipeForm"><div class="field"><label>Nama resipi *</label><input id="rname" required placeholder="Contoh: Cheesekut Milo"></div><div class="form-grid"><div class="field"><label>Jumlah hasil</label><input id="ryield" type="number" min="0.01" step="any" value="8" required></div><div class="field"><label>Unit hasil</label><input id="runit" value="bekas" required></div></div><div class="field"><label>Cara penyediaan</label><textarea id="rsteps"></textarea></div><div class="field"><label>Catatan</label><textarea id="rnotes"></textarea></div><div id="rn"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan resipi</button></div></form></section></div>`;
 $('recipeForm').onsubmit=async e=>{e.preventDefault();let {data,error}=await db.from('recipes').insert({user_id:currentUser.id,name:$('rname').value.trim(),yield_quantity:Number($('ryield').value),yield_unit:$('runit').value.trim()||'bekas',instructions:$('rsteps').value,notes:$('rnotes').value,total_cost:0}).select().single();if(error)return notice('rn',error.message);closeForm();await loadRecipesPage();await viewRecipe(data.id);};
 }
+
 async function viewRecipe(id){
-let r=recipeCache.find(x=>String(x.id)===String(id));if(!r)return;
-mainContent.innerHTML=`<h1 class="page-title">📖 ${esc(r.name)}</h1><p class="subtitle">Masukkan kos setiap unit bahan yang digunakan.</p><section class="panel"><div class="panel-head"><h2>Tambah bahan</h2><button class="btn btn-light" onclick="loadRecipesPage()">← Kembali</button></div><form id="ingredientForm"><div class="field"><label>Nama bahan</label><input id="inName" required placeholder="Contoh: Cream cheese"></div><div class="form-grid"><div class="field"><label>Kuantiti digunakan</label><input id="inQty" type="number" min="0.001" step="any" required></div><div class="field"><label>Unit</label><select id="inUnit"><option>g</option><option>kg</option><option>ml</option><option>L</option><option>pcs</option></select></div></div><div class="field"><label>Kos bagi setiap unit (RM)</label><input id="inCost" type="number" min="0" step="any" required></div><p class="subtitle">Contoh: harga 250g cream cheese RM10.95. Kos setiap gram ialah RM10.95 ÷ 250 = RM0.0438.</p><div id="inNotice"></div><button class="btn btn-primary">＋ Tambah bahan</button></form></section><section class="panel"><h2>Senarai bahan</h2><div id="ingredientList">Memuatkan…</div><h2 id="recipeTotal"></h2><p><b>Cara penyediaan:</b> ${esc(r.instructions||'Belum diisi')}</p><p><b>Catatan:</b> ${esc(r.notes||'Tiada')}</p></section>`;
-$('ingredientForm').onsubmit=async e=>{e.preventDefault();let {error}=await db.from('recipe_ingredients').insert({user_id:currentUser.id,recipe_id:id,ingredient_name:$('inName').value.trim(),quantity:Number($('inQty').value),unit:$('inUnit').value,cost_per_unit:Number($('inCost').value)});if(error)return notice('inNotice',error.message);$('inName').value='';$('inQty').value='';$('inCost').value='';await refreshRecipeIngredients(id);};
-await refreshRecipeIngredients(id);
+  let r=recipeCache.find(x=>String(x.id)===String(id));
+  if(!r)return;
+
+  mainContent.innerHTML=`
+    <h1 class="page-title">📖 ${esc(r.name)}</h1>
+    <p class="subtitle">Pilih bahan daripada stok supaya modal dikira secara automatik.</p>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Tambah bahan</h2>
+        <button class="btn btn-light" onclick="loadRecipesPage()">← Kembali</button>
+      </div>
+      <form id="ingredientForm">
+        <div class="field">
+          <label>Bahan daripada stok</label>
+          <select id="inIngredient" required>
+            <option value="">Memuatkan senarai bahan…</option>
+          </select>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Kuantiti digunakan</label>
+            <input id="inQty" type="number" min="0.001" step="any" required placeholder="Contoh: 250">
+          </div>
+          <div class="field">
+            <label>Unit ikut stok bahan</label>
+            <input id="inUnit" readonly>
+          </div>
+        </div>
+        <div id="inNotice"></div>
+        <button class="btn btn-primary">＋ Tambah bahan</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Senarai bahan resipi</h2>
+      <div id="ingredientList">Memuatkan…</div>
+      <h2 id="recipeTotal"></h2>
+      <p><b>Cara penyediaan:</b> ${esc(r.instructions||'Belum diisi')}</p>
+      <p><b>Catatan:</b> ${esc(r.notes||'Tiada')}</p>
+    </section>`;
+
+  let stockResult=await db.from('ingredients')
+    .select('id,name,unit,quantity,cost')
+    .eq('user_id',currentUser.id)
+    .order('name');
+
+  if(stockResult.error){
+    notice('inNotice','Gagal memuatkan stok: '+stockResult.error.message);
+    return;
+  }
+
+  let stockItems=stockResult.data||[];
+  let select=$('inIngredient');
+
+  select.innerHTML='<option value="">Pilih bahan</option>'+
+    stockItems.map(x=>
+      `<option value="${esc(x.id)}">${esc(x.name)} — stok: ${esc(x.quantity??0)} ${esc(x.unit||'')}</option>`
+    ).join('');
+
+  select.onchange=()=>{
+    let item=stockItems.find(x=>String(x.id)===String(select.value));
+    $('inUnit').value=item?.unit||'';
+  };
+
+  $('ingredientForm').onsubmit=async e=>{
+    e.preventDefault();
+
+    let item=stockItems.find(x=>String(x.id)===String($('inIngredient').value));
+    let qty=Number($('inQty').value);
+
+    if(!item)return notice('inNotice','Sila pilih bahan daripada stok.');
+    if(!Number.isFinite(qty)||qty<=0)return notice('inNotice','Masukkan kuantiti yang sah.');
+
+    let {error}=await db.from('recipe_ingredients').insert({
+      user_id:currentUser.id,
+      recipe_id:id,
+      ingredient_id:item.id,
+      ingredient_name:item.name,
+      quantity:qty,
+      unit:item.unit||'',
+      cost_per_unit:Number(item.cost||0)
+    });
+
+    if(error)return notice('inNotice','Gagal menambah bahan: '+error.message);
+
+    $('inQty').value='';
+    $('inIngredient').value='';
+    $('inUnit').value='';
+
+    await refreshRecipeIngredients(id);
+  };
+
+  await refreshRecipeIngredients(id);
 }
+
 async function refreshRecipeIngredients(id){
-let {data,error}=await db.from('recipe_ingredients').select('*').eq('user_id',currentUser.id).eq('recipe_id',id).order('created_at');if(error){notice('ingredientList',error.message);return;}
-let total=(data||[]).reduce((s,x)=>s+Number(x.quantity||0)*Number(x.cost_per_unit||0),0);
-$('ingredientList').innerHTML=data.length?`<div class="table-wrap"><table><thead><tr><th>Bahan</th><th>Kuantiti</th><th>Kos seunit</th><th>Jumlah</th><th></th></tr></thead><tbody>${data.map(x=>`<tr><td>${esc(x.ingredient_name)}</td><td>${esc(x.quantity)} ${esc(x.unit)}</td><td>${money(x.cost_per_unit)}</td><td>${money(Number(x.quantity)*Number(x.cost_per_unit))}</td><td><button class="btn btn-danger btn-small" onclick="deleteRecipeIngredient('${x.id}','${id}')">Padam</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="empty">Belum ada bahan.</p>';
-$('recipeTotal').textContent='Jumlah modal: '+money(total);
-let {error:upErr}=await db.from('recipes').update({total_cost:total}).eq('id',id).eq('user_id',currentUser.id);if(upErr)alert('Modal dikira tetapi gagal dikemas kini: '+upErr.message);
-let old=recipeCache.find(x=>String(x.id)===String(id));if(old)old.total_cost=total;
-}
+  let {data,error}=await db.from('recipe_ingredients')
+    .select('*')
+    .eq('user_id',currentUser.id)
+    .eq('recipe_id',id)
+    .order('created_at');
+
+  if(error){
+    notice('ingredientList',error.message);
+    return;
+  }
+
+  let rows=data||[];
+  let total=0;
+
+  let stockResult=await db.from('ingredients')
+    .select('id,name,unit,quantity,cost')
+    .eq('user_id',currentUser.id);
+
+  if(stockResult.error){
+    notice('ingredientList','Gagal membaca stok: '+stockResult.error.message);
+    return;
+  }
+
+  let stockItems=stockResult.data||[];
+
+  rows=rows.map(x=>{
+    let item=stockItems.find(s=>String(s.id)===String(x.ingredient_id));
+    let unitCost=item?Number(item.cost||0):Number(x.cost_per_unit||0);
+    let lineTotal=Number(x.quantity||0)*unitCost;
+    total+=lineTotal;
+    return {...x,displayCost:unitCost,lineTotal};
+  });
+
+  $('ingredientList').innerHTML=rows.length
+    ?`<div class="table-wrap"><table>
+      <thead><tr><th>Bahan</th><th>Kuantiti</th><th>Kos seunit</th><th>Jumlah</th><th></th></tr></thead>
+      <tbody>${rows.map(x=>`<tr>
+        <td>${esc(x.ingredient_name)}</td>
+        <td>${esc(x.quantity)} ${esc(x.unit||'')}</td>
+        <td>${money(x.displayCost)}</td>
+        <td>${money(x.lineTotal)}</td>
+        <td><button class="btn btn-danger btn-small" onclick="deleteRecipeIngredient('${x.id}','${id}')">Padam</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`
+    :'<p class="empty">Belum ada bahan.</p>';
+
+  $('recipeTotal').textContent='Jumlah modal bahan: '+money(total);
+
+  let {error:upErr}=await db.from('recipes')
+    .update({total_cost:total})
+    .eq('id',id)
+    .eq('user_id',currentUser.id);
+
+  if(upErr)alert('Modal dikira tetapi gagal dikemas kini: '+upErr.message);
+
+  let old=recipeCache.find(x=>String(x.id)===String(id));
+  if(old)old.total_cost=total;
+} 
 async function deleteRecipeIngredient(ingredientId,recipeId){if(!confirm('Padam bahan ini?'))return;let {error}=await db.from('recipe_ingredients').delete().eq('id',ingredientId).eq('recipe_id',recipeId).eq('user_id',currentUser.id);if(error)alert(error.message);else refreshRecipeIngredients(recipeId);}
 async function deleteRecipe(id){if(!confirm('Padam resipi ini dan semua bahannya?'))return;let {error}=await db.from('recipes').delete().eq('id',id).eq('user_id',currentUser.id);if(error)alert(error.message);else loadRecipesPage();}
 
