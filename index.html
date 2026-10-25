@@ -327,9 +327,20 @@ async function viewRecipe(id){
             <label>Kuantiti digunakan</label>
             <input id="inQty" type="number" min="0.001" step="any" required placeholder="Contoh: 250">
           </div>
-          <div class="field">
-            <label>Unit ikut stok bahan</label>
-            <input id="inUnit" readonly>
+          <div class="field">            
+<label>Unit sukatan resipi</label>
+<select id="inUnit" required>
+  <option value="base">Ikut unit stok bahan</option>
+  <option value="g">Gram (g)</option>
+  <option value="kg">Kilogram (kg)</option>
+  <option value="ml">Mililiter (ml)</option>
+  <option value="liter">Liter (L)</option>
+  <option value="cawan">Cawan</option>
+  <option value="sudu_besar">Sudu besar</option>
+  <option value="sudu_kecil">Sudu kecil</option>
+  <option value="pcs">Biji / pcs</option>
+  <option value="keping">Keping</option>
+</select>
           </div>
         </div>
         <div id="inNotice"></div>
