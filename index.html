@@ -197,134 +197,16 @@ mainContent.innerHTML=`<h1 class="page-title">📋 Tempahan</h1><p class="subtit
 }
 function fieldsHtml(fields,row={}){
 return fields.map(f=>{let [k,label,type]=f,v=row[k]??(type==='date'?today():k==='status'?'Pending':k==='quantity'?1:k.includes('amount')?0:'');let control=type==='textarea'?`<textarea id="f_${k}">${esc(v)}</textarea>`:type==='select'?`<select id="f_${k}">${['Pending','In Progress','Completed','Cancelled'].map(s=>`<option ${v===s?'selected':''}>${s}</option>`).join('')}</select>`:`<input id="f_${k}" type="${type}" value="${esc(v)}" ${type==='number'?'min="0" step="any"':''} ${!['notes','address','phone','category','customer_name'].includes(k)?'required':''}>`;return `<div class="field ${type==='textarea'?'full':''}"><label>${label}</label>${control}</div>`;}).join('');
-} 
-function openRecord(page,id=null){
-  let c=configs[page];
-  let row=id?(cached[page]||[]).find(x=>String(x.id)===String(id)):null;
-
-  if(page==='ingredients'){
-    const val=(k,d='')=>row?.[k]??d;
-    const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-    const unitOptions=['g','kg','ml','pcs'];
-    const selectedUnit=val('package_unit','g');
-
-    modalRoot.innerHTML=`
-      <div class="overlay"><section class="modal">
-        <h2>${row?'Edit':'Tambah'} Stok Bahan</h2>
-        <form id="rf">
-          <div class="form-grid">
-            <div class="field full">
-              <label>Nama bahan</label>
-              <input id="f_name" type="text" required value="${esc(val('name'))}">
-            </div>
-            <div class="field">
-              <label>Bilangan pek dibeli</label>
-              <input id="f_package_count" type="number" min="0.001" step="any" required value="${esc(val('package_count',1))}">
-            </div>
-            <div class="field">
-              <label>Berat/isi satu pek</label>
-              <input id="f_package_quantity" type="number" min="0.001" step="any" required value="${esc(val('package_quantity'))}">
-            </div>
-            <div class="field">
-              <label>Unit pek</label>
-              <select id="f_package_unit">
-                ${unitOptions.map(u=>`<option value="${u}" ${selectedUnit===u?'selected':''}>${u}</option>`).join('')}
-              </select>
-            </div>
-            <div class="field">
-              <label>Harga satu pek (RM)</label>
-              <input id="f_package_cost" type="number" min="0" step="0.01" required value="${esc(val('package_cost'))}">
-            </div>
-            <div class="field">
-              <label>Stok semasa</label>
-              <input id="f_quantity" type="text" readonly value="${row?esc(val('quantity',0))+' '+esc(val('unit','g')):'Dikira automatik'}">
-            </div>
-            <div class="field">
-              <label>Kos seunit (RM)</label>
-              <input id="f_cost" type="text" readonly value="${row?Number(val('cost',0)).toFixed(5):'Dikira automatik'}">
-            </div>
-            <div class="field">
-              <label>Stok minimum</label>
-              <input id="f_minimum_stock" type="number" min="0" step="any" required value="${esc(val('minimum_stock',0))}">
-            </div>
-          </div>
-          <div id="fm"></div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-light" onclick="closeForm()">Batal</button>
-            <button class="btn btn-primary">Simpan</button>
-          </div>
-        </form>
-      </section></div>`;
-
-    $('rf').onsubmit=async e=>{
-      e.preventDefault();
-      const count=Number($('f_package_count').value);
-      const packQty=Number($('f_package_quantity').value);
-      const packUnit=$('f_package_unit').value;
-      const packCost=Number($('f_package_cost').value);
-      const minimum=Number($('f_minimum_stock').value);
-
-      if(!count||count<=0||!packQty||packQty<=0||!Number.isFinite(packCost)||packCost<0||!Number.isFinite(minimum)||minimum<0){
-        return notice('fm','Sila semak bilangan pek, berat/isi, harga dan stok minimum.');
-      }
-
-      const factor=packUnit==='kg'?1000:1;
-      const stockUnit=(packUnit==='kg'||packUnit==='g')?'g':packUnit;
-      const totalBaseQty=count*packQty*factor;
-      const unitCost=packCost/(packQty*factor);
-
-      const p={
-        user_id:currentUser.id,
-        name:$('f_name').value.trim(),
-        package_count:count,
-        package_quantity:packQty,
-        package_unit:packUnit,
-        package_cost:packCost,
-        quantity:row?Number(row.quantity||0):totalBaseQty,
-        unit:row?(row.unit||stockUnit):stockUnit,
-        cost:unitCost,
-        minimum_stock:minimum
-      };
-
-      if(!p.name)return notice('fm','Masukkan nama bahan.');
-
-      const q=row
-        ?db.from('ingredients').update(p).eq('id',row.id).eq('user_id',currentUser.id)
-        :db.from('ingredients').insert(p);
-
-      const {error}=await q;
-      if(error)return notice('fm',error.message);
-      closeForm();
-      loadPage();
-    };
-    return;
-  }
-
-  let extra=page==='sales'?`<div class="field full"><label>Saluran jualan</label><select id="saleChannel"><option value="BIASA">Jualan biasa (tiada komisen)</option><option value="VENDOR">Jualan vendor (komisen 20%)</option></select><small class="subtitle">Pilih vendor hanya jika jualan ini melalui vendor.</small></div>`:'';
-
-  modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>${row?'Edit':'Tambah'} ${c.title}</h2><form id="rf"><div class="form-grid">${fieldsHtml(c.fields,row||{})}${extra}</div><div id="fm"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan</button></div></form></section></div>`;
-
-  if(page==='sales')$('saleChannel').value=isVendorSale(row||{})?'VENDOR':'BIASA';
-
-  $('rf').onsubmit=async e=>{
-    e.preventDefault();
-    let p={user_id:currentUser.id};
-    c.fields.forEach(([k,,t])=>{
-      let v=$('f_'+k).value;
-      p[k]=t==='number'?Number(v):v;
-    });
-    if(page==='sales'){
-      let notes=String(p.notes||'').replace(/\[SALURAN:(VENDOR|BIASA)\]\s*/g,'').trim();
-      p.notes=`[SALURAN:${$('saleChannel').value}]${notes?' '+notes:''}`;
-    }
-    let q=row?db.from(c.table).update(p).eq('id',row.id).eq('user_id',currentUser.id):db.from(c.table).insert(p);
-    let {error}=await q;
-    if(error)return notice('fm',error.message);
-    closeForm();
-    loadPage();
-  };
 }
-
+function openRecord(page,id=null){
+let c=configs[page],row=id?(cached[page]||[]).find(x=>String(x.id)===String(id)):null;
+let extra=page==='sales'?`<div class="field full"><label>Saluran jualan</label><select id="saleChannel"><option value="BIASA">Jualan biasa (tiada komisen)</option><option value="VENDOR">Jualan vendor (komisen 20%)</option></select><small class="subtitle">Pilih vendor hanya jika jualan ini melalui vendor.</small></div>`:'';
+modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>${row?'Edit':'Tambah'} ${c.title}</h2><form id="rf"><div class="form-grid">${fieldsHtml(c.fields,row||{})}${extra}</div><div id="fm"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan</button></div></form></section></div>`;
+if(page==='sales')$('saleChannel').value=isVendorSale(row||{})?'VENDOR':'BIASA';
+$('rf').onsubmit=async e=>{e.preventDefault();let p={user_id:currentUser.id};c.fields.forEach(([k,,t])=>{let v=$('f_'+k).value;p[k]=t==='number'?Number(v):v;});
+if(page==='sales'){let notes=String(p.notes||'').replace(/\[SALURAN:(VENDOR|BIASA)\]\s*/g,'').trim();p.notes=`[SALURAN:${$('saleChannel').value}]${notes?' '+notes:''}`;}
+let q=row?db.from(c.table).update(p).eq('id',row.id).eq('user_id',currentUser.id):db.from(c.table).insert(p);let {error}=await q;if(error)return notice('fm',error.message);closeForm();loadPage();};
+}
 function openBooking(id=null){
 let row=id?cached.bookings.find(x=>String(x.id)===String(id)):null;
 modalRoot.innerHTML=`<div class="overlay"><section class="modal"><h2>${row?'Edit':'Tambah'} tempahan</h2><form id="bf"><div class="form-grid">${fieldsHtml(bookingFields,row||{})}</div><div id="bm"></div><div class="form-actions"><button type="button" class="btn btn-light" onclick="closeForm()">Batal</button><button class="btn btn-primary">Simpan tempahan</button></div></form></section></div>`;
