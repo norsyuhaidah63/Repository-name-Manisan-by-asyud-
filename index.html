@@ -335,6 +335,35 @@ async function refreshRecipeIngredients(id){
     return;
   }
 
+async function makeRecipeBatch(recipeId){
+  let answer=prompt('Berapa adunan yang awak buat?', '1');
+  if(answer===null)return;
+
+  let batches=Number(answer);
+
+  if(!Number.isFinite(batches)||batches<=0||batches>1000){
+    alert('Masukkan bilangan adunan yang sah.');
+    return;
+  }
+
+  if(!confirm(
+    'Sahkan buat '+batches+' adunan? Stok semua bahan akan ditolak.'
+  ))return;
+
+  let {data,error}=await db.rpc('use_recipe_stock',{
+    p_recipe_id:recipeId,
+    p_batch_count:batches
+  });
+
+  if(error){
+    alert('Stok tidak berjaya ditolak: '+error.message);
+    return;
+  } 
+  alert(data||'Stok berjaya dikemas kini.');
+
+  await refreshRecipeIngredients(recipeId);
+}
+
   let rows=data||[];
   let total=0;
 
