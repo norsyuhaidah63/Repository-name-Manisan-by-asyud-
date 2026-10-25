@@ -419,8 +419,7 @@ async function viewRecipe(id){
   };
 
   await refreshRecipeIngredients(id);
-}
-
+} 
 async function refreshRecipeIngredients(id){
   let {data,error}=await db.from('recipe_ingredients')
     .select('*')
@@ -431,35 +430,7 @@ async function refreshRecipeIngredients(id){
   if(error){
     notice('ingredientList',error.message);
     return;
-  } 
-async function makeRecipeBatch(recipeId){
-  let answer=prompt('Berapa adunan yang awak buat?', '1');
-  if(answer===null)return;
-
-  let batches=Number(answer);
-
-  if(!Number.isFinite(batches)||batches<=0||batches>1000){
-    alert('Masukkan bilangan adunan yang sah.');
-    return;
   }
-
-  if(!confirm(
-    'Sahkan buat '+batches+' adunan? Stok semua bahan akan ditolak.'
-  ))return;
-
-  let {data,error}=await db.rpc('use_recipe_stock',{
-    p_recipe_id:recipeId,
-    p_batch_count:batches
-  });
-
-  if(error){
-    alert('Stok tidak berjaya ditolak: '+error.message);
-    return;
-  } 
-  alert(data||'Stok berjaya dikemas kini.');
-
-  await refreshRecipeIngredients(recipeId);
-}
 
   let rows=data||[];
   let total=0;
@@ -476,8 +447,12 @@ async function makeRecipeBatch(recipeId){
   let stockItems=stockResult.data||[];
 
   rows=rows.map(x=>{
-    let item=stockItems.find(s=>String(s.id)===String(x.ingredient_id));
-    let unitCost=item?Number(item.cost||0):Number(x.cost_per_unit||0);
+    let item=stockItems.find(
+      s=>String(s.id)===String(x.ingredient_id)
+    );
+    let unitCost=item
+      ?Number(item.cost||0)
+      :Number(x.cost_per_unit||0);
     let lineTotal=Number(x.quantity||0)*unitCost;
     total+=lineTotal;
     return {...x,displayCost:unitCost,lineTotal};
@@ -503,13 +478,13 @@ async function makeRecipeBatch(recipeId){
     .eq('id',id)
     .eq('user_id',currentUser.id);
 
-  if(upErr)alert('Modal dikira tetapi gagal dikemas kini: '+upErr.message);
+  if(upErr){
+    alert('Modal dikira tetapi gagal dikemas kini: '+upErr.message);
+  }
 
   let old=recipeCache.find(x=>String(x.id)===String(id));
   if(old)old.total_cost=total;
-} 
-async function deleteRecipeIngredient(ingredientId,recipeId){if(!confirm('Padam bahan ini?'))return;let {error}=await db.from('recipe_ingredients').delete().eq('id',ingredientId).eq('recipe_id',recipeId).eq('user_id',currentUser.id);if(error)alert(error.message);else refreshRecipeIngredients(recipeId);}
-async function deleteRecipe(id){if(!confirm('Padam resipi ini dan semua bahannya?'))return;let {error}=await db.from('recipes').delete().eq('id',id).eq('user_id',currentUser.id);if(error)alert(error.message);else loadRecipesPage();}
+}
 
 /* INVOIS DAN RESIT — DALAM HALAMAN APLIKASI */
 async function loadInvoicesPage(){
