@@ -301,91 +301,127 @@ try{window.print();}catch(e){alert('Cetakan terus tidak tersedia. Cuba buka doku
 }
 
 /* DIKEMAS KINI: BUKA DOKUMEN DALAM TAB BARU */
+
 function openDocumentForSafari(){
- const paper=document.querySelector('.invoice-paper');
- if(!paper){
-   alert('Invois tidak ditemui. Sila buka invois dahulu.');
-   return;
- }
+  const paper = document.querySelector('.invoice-paper');
 
- const title=currentInvoiceType==='receipt'
-   ?'Resit Manisan by Asyud'
-   :'Invois Manisan by Asyud';
+  if (!paper) {
+    alert('Invois tidak ditemui. Sila buka invois dahulu.');
+    return;
+  }
 
- const styles=[...document.querySelectorAll('style')]
-   .map(s=>s.innerHTML)
-   .join('\n');
+  const title = currentInvoiceType === 'receipt'
+    ? 'Resit Manisan by Asyud'
+    : 'Invois Manisan by Asyud';
 
- const html=`<!DOCTYPE html>
+  const styles = [...document.querySelectorAll('style')]
+    .map(s => s.innerHTML)
+    .join('\n');
+
+  const html = `<!DOCTYPE html>
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
 <style>
 ${styles}
-body{background:#fff;padding:16px}
-.invoice-paper{max-width:800px;margin:0 auto;box-shadow:none}
-.invoice-inner{padding:30px}
-.toolbar{max-width:800px;margin:0 auto 14px;display:flex;gap:8px;flex-wrap:wrap}
-.toolbar button{border:0;border-radius:9px;padding:12px 15px;background:#c95783;color:white;font-weight:bold}
-@media print{
- @page{size:A4;margin:12mm}
- body{padding:0}
- .toolbar{display:none!important}
- .invoice-paper{border:0;max-width:none}
- .invoice-inner{padding:0}
+
+body {
+  background: #fff;
+  padding: 16px;
+}
+
+.invoice-paper {
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: none;
+}
+
+.toolbar {
+  max-width: 800px;
+  margin: 0 auto 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 15px;
+  background: #c95783;
+  color: white;
+  font-weight: bold;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body * {
+    visibility: visible !important;
+  }
+
+  .toolbar {
+    display: none !important;
+  }
+
+  .invoice-paper {
+    border: 0 !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .invoice-inner {
+    padding: 0 !important;
+  }
+
+  .no-print,
+  .invoice-actions,
+  .print-hint {
+    display: none !important;
+  }
+
+  .invoice-table th,
+  .invoice-note,
+  .invoice-status,
+  .invoice-accent {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 </style>
 </head>
 <body>
 <div class="toolbar">
-<button onclick="window.print()">Cetak / Simpan PDF</button>
-<button onclick="history.back()">Kembali</button>
+  <button onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+  <button onclick="history.back()">← Kembali ke aplikasi</button>
 </div>
 ${paper.outerHTML}
 </body>
 </html>`;
 
- /* Cuba buka tab secara terus daripada sentuhan pengguna. */
- let newTab=null;
- try{
-   newTab=window.open('about:blank','_blank');
- }catch(e){}
+  try {
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
 
- if(newTab){
-   try{
-     newTab.document.open();
-     newTab.document.write(html);
-     newTab.document.close();
-     return;
-   }catch(e){
-     try{newTab.close();}catch(closeError){}
-   }
- }
-
- /* Fallback: cuba kongsi fail HTML melalui menu Share iPhone. */
- try{
-   const file=new File(
-     [html],
-     currentInvoiceType==='receipt'
-       ?'Resit-Manisan-by-Asyud.html'
-       :'Invois-Manisan-by-Asyud.html',
-     {type:'text/html'}
-   );
-
-   if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-     navigator.share({title,files:[file]}).catch(error=>{
-       if(error.name!=='AbortError'){
-         alert('Dokumen tidak dapat dikongsi. Cuba buka aplikasi melalui Safari.');
-       }
-     });
-     return;
-   }
- }catch(e){}
-
- alert('Safari tidak dapat dibuka secara automatik. Buka laman aplikasi ini menggunakan Safari, kemudian buka invois dan tekan Cetak / Simpan PDF. Jika menu cetakan tersedia, pilih pilihan Simpan ke Fail atau PDF.');
+    // Buka paparan dokumen dalam tab yang sama
+    // supaya tidak bergantung pada tetingkap pop-up.
+    window.location.href = url;
+  } catch (e) {
+    alert('Tidak dapat membuka dokumen. Sila buka aplikasi melalui Safari dan cuba lagi.');
+  }
 }
+
 
 /* LAPORAN KEUNTUNGAN */
 function renderReports(){
